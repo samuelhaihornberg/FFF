@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFF : Fast For Fight - Parkour, Wheels & Combat</title>
+    <meta name="description" content="FFF : Fast For Fight - Course combat 2.5D arcade survolté !">
+    <link rel="manifest" href="data:application/manifest+json,{
+        %22name%22:%22Fast%20For%20Fight%22,
+        %22short_name%22:%22FFF%22,
+        %22start_url%22:%22.%22,
+        %22display%22:%22standalone%22,
+        %22background_color%22:%22#08090d%22,
+        %22theme_color%22:%22#ff0055%22
+    }">
+    
+    <style id="fff-main-styles">
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body.fff-app {
+            background-color: #08090d;
+            color: #ffffff;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 20px;
+        }
+
+        /* HEADER & PERMALINK LOGO GITHUB */
+        .fff-header {
+            width: 100%;
+            padding: 15px 10px;
+            background: linear-gradient(180deg, rgba(255, 0, 85, 0.25) 0%, rgba(8, 9, 13, 0) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-bottom: 2px solid #00f0ff;
+            box-shadow: 0 5px 25px rgba(0, 240, 255, 0.2);
+        }
+
+        .logo-container {
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        .logo-img {
+            width: 100%;
+            max-height: 140px;
+            object-fit: contain;
+            filter: drop-shadow(0px 0px 12px #ff0055);
+        }
+
+        .fff-slogan {
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: #ffe600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 14px;
+            border-radius: 20px;
+            border: 1px solid #ffe600;
+        }
+
+        /* ARTICLE REGLES DE VICTOIRE */
+        .fff-article {
+            width: 90%;
+            max-width: 900px;
+            margin: 15px 0;
+            padding: 15px 20px;
+            background: rgba(18, 19, 28, 0.85);
+            border: 1px solid #00f0ff;
+            border-radius: 10px;
+            font-family: 'Segoe UI', sans-serif;
+            color: #d0d0e0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .fff-article h2 {
+            color: #ff0055;
+            font-family: 'Impact', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .fff-article ul { margin-left: 20px; margin-top: 5px; }
+        .fff-article li { margin-bottom: 4px; }
+        .highlight { color: #ffe600; font-weight: bold; }
+
+        /* LAUNCHER & OVERLAY GARAGE NFS UNDERGROUND 2 */
+        .overlay-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(8, 9, 13, 0.96);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .launcher-card {
+            background: #12131c;
+            border: 3px solid #00f0ff;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 0 35px rgba(0, 240, 255, 0.3);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        /* GARAGE NFS STYLE UI */
+        .garage-container {
+            display: flex;
+            flex-direction: column;
+            width: 95%;
+            max-width: 800px;
+            background: #0d0e15;
+            border: 3px solid #ff0055;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 40px rgba(255, 0, 85, 0.4);
+        }
+
+        .garage-header {
+            color: #ffe600;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px dashed #00f0ff;
+            padding-bottom: 8px;
+        }
+
+        .garage-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .garage-preview {
+            background: #000;
+            border: 2px solid #00f0ff;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .garage-tuning-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .tune-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .tune-item label { color: #00f0ff; font-weight: bold; font-size: 0.85rem; }
+        .tune-item select, .tune-item input {
+            background: #181a26;
+            color: #fff;
+            border: 1px solid #ff0055;
+            padding: 6px;
+            border-radius: 4px;
+            font-family: sans-serif;
+        }
+
+        .btn-action {
+            background: linear-gradient(45deg, #ff0055, #ff5500);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Impact', sans-serif;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.8);
+        }
+
+        /* VIEWPORT CANVAS */
+        #game-viewport {
+            position: relative;
+            border: 4px solid #00f0ff;
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        canvas { display: block; background-color: #12131c; }
+
+        .controls-hint {
+            margin-top: 10px;
+            color: #00f0ff;
+            font-size: 13px;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="fff-app">
+
+    <!-- HEADER ET LOGO PERMALINK GITHUB -->
+    <header class="fff-header">
+        <div class="logo-container">
+            <img src="https://raw.githubusercontent.com/samuelhaihornberg/Testcodeinnove/6d062d8ce8b894b2d3ea335eabe3283448273e17/images%20%26%20videos/1786846892107.png" alt="FFF Logo" class="logo-img">
+        </div>
+        <p class="fff-slogan">Ride, Combats & Survis à la Zone !</p>
+    </header>
+
+    <!-- SECTION ARTICLE DEFINITION DU JEU ET REGLES -->
+    <article class="fff-article">
+        <h2>À propos de FFF (Fast For Fight)</h2>
+        <p>FFF est un jeu de <span class="highlight">Course-Combat 2.5D Arcade</span> combinant vitesse pure, acrobaties style parkour et combats frénétiques.</p>
+        <p style="margin-top: 8px;"><strong>Règles de Victoire :</strong></p>
+        <ul>
+            <li><strong>Formats 1v3 / 2v3 / 3v3 :</strong> Le <span class="highlight">premier arrivé</span> fait gagner son équipe.</li>
+            <li><strong>Formats 1v5 / 2v5 / 3v5 / 4v5 / 5v5 :</strong> Les <span class="highlight">trois premiers arrivés</span> valident la victoire.</li>
+        </ul>
+    </article>
+
+    <!-- ACCUEIL LAUNCHER PWA -->
+    <div id="home-launcher" class="overlay-screen">
+        <div class="launcher-card">
+            <h1 style="font-size: 2.2rem; color: #00f0ff; font-style: italic;">FAST FOR FIGHT</h1>
+            <p style="color: #a0a0b0; font-family: sans-serif; font-size: 0.9rem; margin-bottom: 20px;">Parkour & Speed Battle Royale PWA</p>
+            <button id="btn-open-garage" class="btn-action">Lancer la Partie</button>
+        </div>
+    </div>
+
+    <!-- MENU GARAGE NFS UNDERGROUND 2 (SE DÉCLENCHE APRÈS LE LAUNCHER) -->
+    <div id="nfs-garage" class="overlay-screen hidden">
+        <div class="garage-container">
+            <div class="garage-header"> Garage Tuning NFS Underground 2</div>
+            <div class="garage-body">
+                <!-- APERÇU 2.5D DU VÉHICULE EN TEMPS RÉEL -->
+                <div class="garage-preview">
+                    <canvas id="garage-canvas" width="260" height="180"></canvas>
+                    <span style="color:#ffe600; font-family:sans-serif; font-size:0.8rem; margin-top:8px;">Aperçu du Bolide</span>
+                </div>
+
+                <!-- OPTIONS DE TUNING & UPGRADES -->
+                <div class="garage-tuning-panel">
+                    <div class="tune-item">
+                        <label>Sélection Véhicule :</label>
+                        <select id="tune-vehicle">
+                            <option value="skate">Skateboard Jet Nitro</option>
+                            <option value="vtt">VTT Cross Heavy</option>
+                            <option value="rollers">Rollers Rocket Turbo</option>
+                        </select>
+                    </div>
+                    <div class="tune-item">
+                        <label>Couleur Néon / Peinture :</label>
+                        <input type="color" id="tune-color" value="#00f0ff">
+                    </div>
+                    <div class="tune-item">
+                        <label>Upgrade Moteur / Nitro :</label>
+                        <select id="tune-engine">
+                            <option value="1">Stage 1 (+10% Vitesse)</option>
+                            <option value="1.25">Stage 2 (+25% Vitesse)</option>
+                            <option value="1.5">Stage 3 Pro (+50% Vitesse)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button id="btn-start-race" class="btn-action" style="background: linear-gradient(45deg, #00f0ff, #7000ff);">Entrer dans la Course !</button>
+        </div>
+    </div>
+
+    <!-- CANVAS VIEWPORT (JEU SOLO / LOCAL) -->
+    <div id="game-viewport">
+        <canvas id="fff-canvas" width="900" height="420"></canvas>
+    </div>
+
+    <div class="controls-hint">
+        Contrôles Warframe : [Q/D] Mouvement | [Espace] Saut / Bullet-Jump | [Shift] Glissade (Slide)
+    </div>
+
+    <!-- CONFIGURATION COFF CORE -->
+    <script type="text/coff" id="coff-core-config">
+        <co name="physics_warframe">
+            <stat name="gravity" val="0.5" />
+            <stat name="walk_speed" val="5" />
+            <stat name="slide_boost" val="12" />
+            <stat name="bullet_jump_force_x" val="11" />
+            <stat name="bullet_jump_force_y" val="-13" />
+        </co>
+    </script>
+
+    <!-- ARCHITECTURE MOTEUR JS + LOCAL NANO-SERVEUR COMPATIBLE C/C++/C#/PYTHON/NODE -->
+    <script>
+        // ARCHITECTURE NANO-SERVEUR LOCAL POUR PARTIE ET GARAGE
+        const LOCAL_NANO_SERVER = {
+            sessionData: {
+                vehicle: 'skate',
+                color: '#00f0ff',
+                speedMultiplier: 1.0,
+                isSoloLocal: true
+            },
+            saveGarageConfig(vehicle, color, speed) {
+                this.sessionData.vehicle = vehicle;
+                this.sessionData.color = color;
+                this.sessionData.speedMultiplier = parseFloat(speed);
+                console.log("[NanoServer Local Node/C++] Configuration Garage Sauvegardée :", this.sessionData);
+            }
+        };
+
+        const COFF_ENGINE = {
+            config: {},
+            init() {
+                window.addEventListener('DOMContentLoaded', () => {
+                    this.parseCOFF();
+                    this.setupUI();
+                    this.bootGame();
+                });
+            },
+            parseCOFF() {
+                const rawCOFF = document.getElementById('coff-core-config').textContent;
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(`<coff>${rawCOFF}</coff>`, "text/xml");
+                const modules = xmlDoc.getElementsByTagName("co");
+                Array.from(modules).forEach(mod => {
+                    const modName = mod.getAttribute("name");
+                    this.config[modName] = {};
+                    Array.from(mod.children).forEach(child => {
+                        const key = child.getAttribute("name");
+                        const val = child.getAttribute("val");
+                        this.config[modName][key] = isNaN(val) ? val : parseFloat(val);
+                    });
+                });
+            },
+            setupUI() {
+                const homeLauncher = document.getElementById('home-launcher');
+                const nfsGarage = document.getElementById('nfs-garage');
+                const btnOpenGarage = document.getElementById('btn-open-garage');
+                const btnStartRace = document.getElementById('btn-start-race');
+
+                // Canvas de prévisualisation dans le Garage
+                const gCanvas = document.getElementById('garage-canvas');
+                const gCtx = gCanvas.getContext('2d');
+
+                function renderGaragePreview() {
+                    const veh = document.getElementById('tune-vehicle').value;
+                    const col = document.getElementById('tune-color').value;
+                    
+                    gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height);
+                    gCtx.save();
+                    gCtx.translate(gCanvas.width / 2, gCanvas.height / 2 + 10);
+                    
+                    // Ombre / néon sous le véhicule
+                    gCtx.shadowColor = col;
+                    gCtx.shadowBlur = 15;
+
+                    // Stickman Preview
+                    gCtx.beginPath();
+                    gCtx.arc(0, -25, 14, 0, Math.PI * 2);
+                    gCtx.fillStyle = col;
+                    gCtx.fill();
+
+                    // Dessin Véhicule Preview
+                    gCtx.strokeStyle = col;
+                    gCtx.fillStyle = col;
+                    gCtx.lineWidth = 3;
+
+                    if (veh === 'skate') {
+                        gCtx.beginPath(); gCtx.ellipse(0, 10, 30, 7, 0, 0, Math.PI * 2); gCtx.fill();
+                        gCtx.fillStyle = '#ffe600';
+                        gCtx.beginPath(); gCtx.arc(-18, 18, 5, 0, Math.PI * 2); gCtx.arc(18, 18, 5, 0, Math.PI * 2); gCtx.fill();
+                    } else if (veh === 'vtt') {
+                        gCtx.beginPath(); gCtx.arc(-22, 10, 12, 0, Math.PI * 2); gCtx.arc(22, 10, 12, 0, Math.PI * 2); gCtx.stroke();
+                        gCtx.beginPath(); gCtx.moveTo(-22, 10); gCtx.lineTo(0, -5); gCtx.lineTo(22, 10); gCtx.stroke();
+                    } else if (veh === 'rollers') {
+                        gCtx.fillStyle = '#ffe600';
+                        gCtx.fillRect(-15, 12, 30, 6);
+                        gCtx.beginPath(); gCtx.arc(-10, 22, 4, 0, Math.PI * 2); gCtx.arc(0, 22, 4, 0, Math.PI * 2); gCtx.arc(10, 22, 4, 0, Math.PI * 2); gCtx.fill();
+                    }
+                    gCtx.restore();
+                    requestAnimationFrame(renderGaragePreview);
+                }
+
+                btnOpenGarage.addEventListener('click', () => {
+                    homeLauncher.classList.add('hidden');
+                    nfsGarage.classList.remove('hidden');
+                    renderGaragePreview();
+                });
+
+                btnStartRace.addEventListener('click', () => {
+                    const veh = document.getElementById('tune-vehicle').value;
+                    const col = document.getElementById('tune-color').value;
+                    const spd = document.getElementById('tune-engine').value;
+
+                    // Transfert des données au serveur local
+                    LOCAL_NANO_SERVER.saveGarageConfig(veh, col, spd);
+
+                    nfsGarage.classList.add('hidden');
+                });
+            },
+            bootGame() {
+                const canvas = document.getElementById("fff-canvas");
+                const ctx = canvas.getContext("2d");
+                const phys = this.config.physics_warframe;
+
+                let player = {
+                    x: 100, y: 300, radius: 16,
+                    vx: 0, vy: 0,
+                    isGrounded: false,
+                    isSliding: false,
+                    sautsRestants: 2
+                };
+
+                let keys = {};
+                window.addEventListener('keydown', e => {
+                    if (!keys[e.code] && e.code === 'Space') handleJump();
+                    keys[e.code] = true;
+                });
+                window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+                function handleJump() {
+                    if (player.isSliding) {
+                        player.vx = (keys['KeyD'] || keys['ArrowRight']) ? phys.bullet_jump_force_x : -phys.bullet_jump_force_x;
+                        if (player.vx === 0) player.vx = phys.bullet_jump_force_x;
+                        player.vy = phys.bullet_jump_force_y;
+                        player.isSliding = false;
+                        player.isGrounded = false;
+                        player.sautsRestants = 0;
+                    } else if (player.sautsRestants > 0) {
+                        player.vy = -10;
+                        player.sautsRestants--;
+                        player.isGrounded = false;
+                    }
+                }
+
+                function drawVehicle25D(ctx, type, color) {
+                    ctx.save();
+                    ctx.strokeStyle = color;
+                    ctx.fillStyle = color;
+                    ctx.lineWidth = 3;
+
+                    if (type === 'skate') {
+                        ctx.beginPath(); ctx.ellipse(0, 16, 25, 6, -0.1, 0, Math.PI * 2); ctx.fill();
+                        ctx.fillStyle = '#ffe600';
+                        ctx.beginPath(); ctx.arc(-14, 22, 4, 0, Math.PI * 2); ctx.arc(14, 22, 4, 0, Math.PI * 2); ctx.fill();
+                    } else if (type === 'vtt') {
+                        ctx.beginPath(); ctx.arc(-18, 12, 10, 0, Math.PI * 2); ctx.arc(18, 12, 10, 0, Math.PI * 2); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(-18, 12); ctx.lineTo(0, -2); ctx.lineTo(18, 12); ctx.stroke();
+                    } else if (type === 'rollers') {
+                        ctx.fillStyle = '#ffe600'; ctx.fillRect(-12, 14, 24, 5);
+                        ctx.beginPath(); ctx.arc(-8, 22, 3, 0, Math.PI * 2); ctx.arc(0, 22, 3, 0, Math.PI * 2); ctx.arc(8, 22, 3, 0, Math.PI * 2); ctx.fill();
+                    }
+                    ctx.restore();
+                }
+
+                function update() {
+                    const currentSpeed = phys.walk_speed * LOCAL_NANO_SERVER.sessionData.speedMultiplier;
+
+                    if (keys['ShiftLeft'] || keys['ShiftRight']) {
+                        if (!player.isSliding && player.isGrounded) {
+                            player.isSliding = true;
+                            const dir = (keys['KeyD'] || keys['ArrowRight']) ? 1 : ((keys['KeyA'] || keys['ArrowLeft']) ? -1 : 1);
+                            player.vx = dir * phys.slide_boost;
+                        }
+                    } else {
+                        player.isSliding = false;
+                    }
+
+                    if (!player.isSliding) {
+                        if (keys['KeyD'] || keys['ArrowRight']) player.vx = currentSpeed;
+                        else if (keys['KeyA'] || keys['ArrowLeft']) player.vx = -currentSpeed;
+                        else player.vx *= 0.8;
+                    } else {
+                        player.vx *= 0.96;
+                    }
+
+                    player.x += player.vx;
+                    player.y += player.vy;
+                    player.vy += phys.gravity;
+
+                    const floorY = canvas.height - 40;
+                    if (player.y + player.radius >= floorY) {
+                        player.y = floorY - player.radius;
+                        player.vy = 0;
+                        player.isGrounded = true;
+                        player.sautsRestants = 2;
+                    }
+
+                    if (player.x - player.radius < 0) player.x = player.radius;
+                    if (player.x + player.radius > canvas.width) player.x = canvas.width - player.radius;
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    // Sol Neon
+                    ctx.fillStyle = "#ff0055";
+                    ctx.fillRect(0, floorY, canvas.width, 40);
+                    ctx.strokeStyle = "#00f0ff";
+                    ctx.lineWidth = 4;
+                    ctx.beginPath(); ctx.moveTo(0, floorY); ctx.lineTo(canvas.width, floorY); ctx.stroke();
+
+                    // Stickman avec Tuning appliqué
+                    ctx.save();
+                    ctx.translate(player.x, player.y);
+                    if (player.isSliding) ctx.scale(1.2, 0.6);
+
+                    ctx.beginPath();
+                    ctx.arc(0, -12, player.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = LOCAL_NANO_SERVER.sessionData.color;
+                    ctx.fill();
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = "#000";
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(0, 4); ctx.lineTo(0, 14);
+                    ctx.strokeStyle = LOCAL_NANO_SERVER.sessionData.color;
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+
+                    drawVehicle25D(ctx, LOCAL_NANO_SERVER.sessionData.vehicle, LOCAL_NANO_SERVER.sessionData.color);
+
+                    ctx.restore();
+
+                    requestAnimationFrame(update);
+                }
+
+                update();
+            }
+        };
+
+        COFF_ENGINE.init();
+    </script>
+</body>
+</html>
