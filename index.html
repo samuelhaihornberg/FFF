@@ -149,18 +149,6 @@
         const playerGroup = new THREE.Group();
         scene.add(playerGroup);
         playerGroup.position.set(0, 0, 0);
-
-        // --- 4. CRÉATION 3D DES PERSONNAGES ---
-        const createNeonMat = (colorHex) => new THREE.MeshStandardMaterial({
-            color: colorHex, roughness: 0.3, metalness: 0.1, flatShading: true
-        });
-
-        const styles = {
-            ninja: { head: 0xcc0000, body: 0x111111, vehicle: 0xff0055 },
-            soldier: { head: 0xffcc00, body: 0x556b2f, vehicle: 0x00f0ff },
-            engineer: { head: 0x0088ff, body: 0x002b80, vehicle: 0xffe600 }
-        };
-
         function buildCharacter3D(className) {
             while(playerGroup.children.length > 0){ 
                 playerGroup.remove(playerGroup.children[0]); 
@@ -168,19 +156,70 @@
 
             const theme = styles[className] || styles.ninja;
 
-            // Tête
-            const headGeo = new THREE.IcosahedronGeometry(1.2, 1);
-            const head = new THREE.Mesh(headGeo, createNeonMat(theme.head));
-            head.position.y = 3.5;
+            // 1. Tête Emoji (Sphère lisse style dessin animé)
+            const headGeo = new THREE.SphereGeometry(0.9, 32, 32);
+            const headMat = new THREE.MeshStandardMaterial({ color: theme.head, roughness: 0.2, metalness: 0.1 });
+            const head = new THREE.Mesh(headGeo, headMat);
+            head.position.y = 3.2;
             head.castShadow = true;
             playerGroup.add(head);
 
-            // Corps
-            const bodyGeo = new THREE.CylinderGeometry(0.3, 0.3, 2.2, 6);
-            const body = new THREE.Mesh(bodyGeo, createNeonMat(theme.body));
+            // 2. Visage / Lunettes ou expression selon la classe
+            if (className === 'engineer') {
+                // Lunettes de soleil cool sur l'emoji
+                const glassesGeo = new THREE.BoxGeometry(1.1, 0.3, 0.4);
+                const glassesMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+                const glasses = new THREE.Mesh(glassesGeo, glassesMat);
+                glasses.position.set(0, 3.2, 0.7);
+                playerGroup.add(glasses);
+            }
+
+            // 3. Corps Stickman (Bâton fin et rigide)
+            const bodyGeo = new THREE.CylinderGeometry(0.12, 0.12, 1.8, 8);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
             body.position.y = 1.8;
             body.castShadow = true;
             playerGroup.add(body);
+
+            // 4. Bras et Jambes (Style Stick)
+            const limbGeo = new THREE.CylinderGeometry(0.09, 0.09, 1.4, 8);
+            const limbMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+
+            // Bras gauche / droit
+            const armL = new THREE.Mesh(limbGeo, limbMat);
+            armL.rotation.z = Math.PI / 4;
+            armL.position.set(-0.6, 2.2, 0);
+            playerGroup.add(armL);
+
+            const armR = new THREE.Mesh(limbGeo, limbMat);
+            armR.rotation.z = -Math.PI / 4;
+            armR.position.set(0.6, 2.2, 0);
+            playerGroup.add(armR);
+
+            // 5. Véhicule 3D proportionné
+            const vehGroup = new THREE.Group();
+            if (className === 'engineer') {
+                // Skateboard
+                const board = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.15, 3.0), createNeonMat(theme.vehicle));
+                board.position.y = 0.3;
+                vehGroup.add(board);
+            } else if (className === 'soldier') {
+                // VTT
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.8, 2.5), createNeonMat(theme.vehicle));
+                frame.position.y = 0.8;
+                vehGroup.add(frame);
+            } else {
+                // Rollers
+                const rollerL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 1.0), createNeonMat(theme.vehicle));
+                rollerL.position.set(-0.4, 0.2, 0);
+                const rollerR = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 1.0), createNeonMat(theme.vehicle));
+                rollerR.position.set(0.4, 0.2, 0);
+                vehGroup.add(rollerL, rollerR);
+            }
+            playerGroup.add(vehGroup);
+        }
+);
 
             // Véhicule
             const vehGroup = new THREE.Group();
