@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FFF : Fast For Fight - Parkour, Wheels & Combat</title>
-    <meta name="description" content="FFF : Fast For Fight - Course combat 2.5D arcade survolté !">
+    <title>FFF : Fast For Fight - Course & Combat 2.5D</title>
+    <meta name="description" content="FFF : Course combat 2.5D arcade survolté !">
     <link rel="manifest" href="data:application/manifest+json,{
         %22name%22:%22Fast%20For%20Fight%22,
         %22short_name%22:%22FFF%22,
@@ -28,7 +28,7 @@
             padding-bottom: 20px;
         }
 
-        /* HEADER & PERMALINK LOGO GITHUB */
+        /* HEADER & LOGO */
         .fff-header {
             width: 100%;
             padding: 15px 10px;
@@ -40,197 +40,94 @@
             box-shadow: 0 5px 25px rgba(0, 240, 255, 0.2);
         }
 
-        .logo-container {
-            width: 100%;
-            max-width: 450px;
-            text-align: center;
-        }
-
-        .logo-img {
-            width: 100%;
-            max-height: 140px;
-            object-fit: contain;
-            filter: drop-shadow(0px 0px 12px #ff0055);
-        }
+        .logo-container { width: 100%; max-width: 450px; text-align: center; }
+        .logo-img { width: 100%; max-height: 140px; object-fit: contain; filter: drop-shadow(0px 0px 12px #ff0055); }
 
         .fff-slogan {
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: 800;
-            font-size: 0.9rem;
-            color: #ffe600;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-top: 8px;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 4px 14px;
-            border-radius: 20px;
-            border: 1px solid #ffe600;
+            font-family: 'Segoe UI', sans-serif; font-weight: 800; font-size: 0.9rem;
+            color: #ffe600; text-transform: uppercase; letter-spacing: 2px; margin-top: 8px;
+            background: rgba(0, 0, 0, 0.6); padding: 4px 14px; border-radius: 20px; border: 1px solid #ffe600;
         }
 
-        /* ARTICLE REGLES DE VICTOIRE */
-        .fff-article {
-            width: 90%;
-            max-width: 900px;
-            margin: 15px 0;
-            padding: 15px 20px;
-            background: rgba(18, 19, 28, 0.85);
-            border: 1px solid #00f0ff;
-            border-radius: 10px;
-            font-family: 'Segoe UI', sans-serif;
-            color: #d0d0e0;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        .fff-article h2 {
-            color: #ff0055;
-            font-family: 'Impact', sans-serif;
-            font-size: 1.4rem;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .fff-article ul { margin-left: 20px; margin-top: 5px; }
-        .fff-article li { margin-bottom: 4px; }
-        .highlight { color: #ffe600; font-weight: bold; }
-
-        /* LAUNCHER & OVERLAY GARAGE NFS UNDERGROUND 2 */
+        /* OVERLAYS & MENUS */
         .overlay-screen {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: rgba(8, 9, 13, 0.96);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            backdrop-filter: blur(10px);
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(8, 9, 13, 0.96); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(10px);
         }
 
-        .launcher-card {
-            background: #12131c;
-            border: 3px solid #00f0ff;
-            border-radius: 16px;
-            padding: 25px;
-            text-align: center;
-            box-shadow: 0 0 35px rgba(0, 240, 255, 0.3);
-            max-width: 500px;
-            width: 90%;
+        /* GENERATOR 2.5D UI */
+        .generator-container {
+            display: flex; flex-direction: column; width: 95%; max-width: 900px;
+            background: #0d0e15; border: 3px solid #00f0ff; border-radius: 12px; padding: 20px;
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.4);
         }
 
-        /* GARAGE NFS STYLE UI */
-        .garage-container {
-            display: flex;
-            flex-direction: column;
-            width: 95%;
-            max-width: 800px;
-            background: #0d0e15;
-            border: 3px solid #ff0055;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 0 40px rgba(255, 0, 85, 0.4);
+        .generator-header {
+            color: #ff0055; font-size: 1.8rem; text-transform: uppercase; text-align: center;
+            margin-bottom: 15px; border-bottom: 2px dashed #ffe600; padding-bottom: 8px;
         }
 
-        .garage-header {
-            color: #ffe600;
-            font-size: 1.8rem;
-            text-transform: uppercase;
-            text-align: center;
-            margin-bottom: 15px;
-            border-bottom: 2px dashed #00f0ff;
-            padding-bottom: 8px;
+        .generator-body { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
+        
+        .preview-panel {
+            display: flex; flex-direction: column; gap: 10px;
         }
 
-        .garage-body {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .garage-preview {
-            background: #000;
-            border: 2px solid #00f0ff;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 15px;
-        }
-
-        .garage-tuning-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            font-family: 'Segoe UI', sans-serif;
-        }
-
-        .tune-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .tune-item label { color: #00f0ff; font-weight: bold; font-size: 0.85rem; }
-        .tune-item select, .tune-item input {
-            background: #181a26;
-            color: #fff;
-            border: 1px solid #ff0055;
-            padding: 6px;
-            border-radius: 4px;
-            font-family: sans-serif;
-        }
-
-        .btn-action {
-            background: linear-gradient(45deg, #ff0055, #ff5500);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            font-family: 'Impact', sans-serif;
-        }
-
-        .btn-action:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 20px rgba(255, 0, 85, 0.8);
-        }
-
-        /* VIEWPORT CANVAS */
-        #game-viewport {
-            position: relative;
-            border: 4px solid #00f0ff;
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
-            border-radius: 12px;
+        .generator-preview {
+            background: radial-gradient(circle, #1a1c29 0%, #000 100%);
+            border: 2px solid #ffe600; border-radius: 8px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 15px; position: relative;
             overflow: hidden;
         }
 
-        canvas { display: block; background-color: #12131c; }
+        /* Effet de flash lors de la génération */
+        .flash-effect {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; pointer-events: none; z-index: 10;
+        }
+        @keyframes flashAnim {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .do-flash { animation: flashAnim 0.6s ease-out; }
 
-        .controls-hint {
-            margin-top: 10px;
-            color: #00f0ff;
-            font-size: 13px;
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: bold;
-            text-align: center;
+        /* Stats & Stuff Panel */
+        .stuff-panel {
+            background: #12131c; border: 1px solid #00f0ff; border-radius: 8px;
+            padding: 10px; font-family: 'Segoe UI', sans-serif; font-size: 0.85rem; color: #d0d0e0;
+        }
+        .stuff-panel h3 { color: #00f0ff; margin-bottom: 5px; text-transform: uppercase; font-size: 1rem; }
+        .stat-line { display: flex; justify-content: space-between; margin-bottom: 3px; border-bottom: 1px solid #222; }
+        .stat-val { color: #ffe600; font-weight: bold; }
+
+        /* Prompters (Inputs) */
+        .prompter-panel { display: flex; flex-direction: column; gap: 10px; font-family: 'Segoe UI', sans-serif; }
+        .prompter-item { display: flex; flex-direction: column; gap: 3px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; }
+        .prompter-item label { color: #00f0ff; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
+        .prompter-item select, .prompter-item input {
+            background: #181a26; color: #fff; border: 1px solid #ff0055;
+            padding: 6px; border-radius: 4px; font-weight: bold; font-family: 'Segoe UI', sans-serif;
         }
 
+        .btn-action {
+            background: linear-gradient(45deg, #ff0055, #ff5500); color: white; border: none;
+            padding: 12px 24px; font-size: 1.2rem; font-weight: bold; border-radius: 8px;
+            cursor: pointer; width: 100%; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px;
+            transition: transform 0.2s, box-shadow 0.2s; font-family: 'Impact', sans-serif;
+        }
+        .btn-action:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255, 0, 85, 0.8); }
+
+        #game-viewport {
+            position: relative; border: 4px solid #00f0ff; box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+            border-radius: 12px; overflow: hidden; margin-top: 15px;
+        }
+        canvas { display: block; background-color: #0d0e15; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body class="fff-app">
 
-    <!-- HEADER ET LOGO PERMALINK GITHUB -->
     <header class="fff-header">
         <div class="logo-container">
             <img src="https://raw.githubusercontent.com/samuelhaihornberg/Testcodeinnove/6d062d8ce8b894b2d3ea335eabe3283448273e17/images%20%26%20videos/1786846892107.png" alt="FFF Logo" class="logo-img">
@@ -238,250 +135,294 @@
         <p class="fff-slogan">Ride, Combats & Survis à la Zone !</p>
     </header>
 
-    <!-- SECTION ARTICLE DEFINITION DU JEU ET REGLES -->
-    <article class="fff-article">
-        <h2>À propos de FFF (Fast For Fight)</h2>
-        <p>FFF est un jeu de <span class="highlight">Course-Combat 2.5D Arcade</span> combinant vitesse pure, acrobaties style parkour et combats frénétiques.</p>
-        <p style="margin-top: 8px;"><strong>Règles de Victoire :</strong></p>
-        <ul>
-            <li><strong>Formats 1v3 / 2v3 / 3v3 :</strong> Le <span class="highlight">premier arrivé</span> fait gagner son équipe.</li>
-            <li><strong>Formats 1v5 / 2v5 / 3v5 / 4v5 / 5v5 :</strong> Les <span class="highlight">trois premiers arrivés</span> valident la victoire.</li>
-        </ul>
-    </article>
-
-    <!-- ACCUEIL LAUNCHER PWA -->
-    <div id="home-launcher" class="overlay-screen">
-        <div class="launcher-card">
-            <h1 style="font-size: 2.2rem; color: #00f0ff; font-style: italic;">FAST FOR FIGHT</h1>
-            <p style="color: #a0a0b0; font-family: sans-serif; font-size: 0.9rem; margin-bottom: 20px;">Parkour & Speed Battle Royale PWA</p>
-            <button id="btn-open-garage" class="btn-action">Lancer la Partie</button>
-        </div>
-    </div>
-
-    <!-- MENU GARAGE NFS UNDERGROUND 2 (SE DÉCLENCHE APRÈS LE LAUNCHER) -->
-    <div id="nfs-garage" class="overlay-screen hidden">
-        <div class="garage-container">
-            <div class="garage-header"> Garage Tuning NFS Underground 2</div>
-            <div class="garage-body">
-                <!-- APERÇU 2.5D DU VÉHICULE EN TEMPS RÉEL -->
-                <div class="garage-preview">
-                    <canvas id="garage-canvas" width="260" height="180"></canvas>
-                    <span style="color:#ffe600; font-family:sans-serif; font-size:0.8rem; margin-top:8px;">Aperçu du Bolide</span>
+    <!-- GENERATEUR 2.5D FLASH & STUFF DE BASE -->
+    <div id="account-generator" class="overlay-screen">
+        <div class="generator-container">
+            <div class="generator-header"> Création de Compte & EmojiStick 2.5D</div>
+            <div class="generator-body">
+                
+                <!-- PANNEAU APERÇU ET STUFF -->
+                <div class="preview-panel">
+                    <div class="generator-preview">
+                        <div id="flash-overlay" class="flash-effect"></div>
+                        <canvas id="generator-canvas" width="280" height="200"></canvas>
+                        <span style="color:#ffe600; font-family:sans-serif; font-size:0.8rem; margin-top:8px; z-index: 2;">Aperçu Temps Réel</span>
+                    </div>
+                    
+                    <div class="stuff-panel" id="base-stuff-display">
+                        <h3>Équipement & Stats de Base</h3>
+                        <div class="stat-line"><span>Arme principale :</span> <span class="stat-val" id="stuff-arme">-</span></div>
+                        <div class="stat-line"><span>Gadget / Soutien :</span> <span class="stat-val" id="stuff-gadget">-</span></div>
+                        <div class="stat-line"><span>PV Max :</span> <span class="stat-val" id="stat-hp">-</span></div>
+                        <div class="stat-line"><span>Vitesse :</span> <span class="stat-val" id="stat-spd">-</span></div>
+                    </div>
                 </div>
 
-                <!-- OPTIONS DE TUNING & UPGRADES -->
-                <div class="garage-tuning-panel">
-                    <div class="tune-item">
-                        <label>Sélection Véhicule :</label>
-                        <select id="tune-vehicle">
-                            <option value="skate">Skateboard Jet Nitro</option>
-                            <option value="vtt">VTT Cross Heavy</option>
-                            <option value="rollers">Rollers Rocket Turbo</option>
+                <!-- PROMPTERS DE PERSONNALISATION -->
+                <div class="prompter-panel">
+                    <div class="prompter-item">
+                        <label>1. Classe Opérationnelle</label>
+                        <select id="prompt-class">
+                            <option value="soldat">Soldat (Assaut Équilibré)</option>
+                            <option value="fighter">Fighter (Mêlée & Tank)</option>
+                            <option value="medecin">Médecin (Soin & Survie)</option>
+                            <option value="ingenieur">Ingénieur (Pièges & Tech)</option>
                         </select>
                     </div>
-                    <div class="tune-item">
-                        <label>Couleur Néon / Peinture :</label>
-                        <input type="color" id="tune-color" value="#00f0ff">
-                    </div>
-                    <div class="tune-item">
-                        <label>Upgrade Moteur / Nitro :</label>
-                        <select id="tune-engine">
-                            <option value="1">Stage 1 (+10% Vitesse)</option>
-                            <option value="1.25">Stage 2 (+25% Vitesse)</option>
-                            <option value="1.5">Stage 3 Pro (+50% Vitesse)</option>
+                    <div class="prompter-item">
+                        <label>2. Monture 2.5D</label>
+                        <select id="prompt-vehicle">
+                            <option value="skate">Skateboard</option>
+                            <option value="vtt">VTT Cross</option>
+                            <option value="rollers">Rollers</option>
                         </select>
                     </div>
+                    <div class="prompter-item">
+                        <label>3. Humeur (Yeux)</label>
+                        <select id="prompt-eyes">
+                            <option value="neutre">Concentré (Neutre)</option>
+                            <option value="angry">Furieux (Angry)</option>
+                            <option value="cool">Détendu (Lunettes)</option>
+                        </select>
+                    </div>
+                    <div class="prompter-item">
+                        <label>4. Couleur Combinaison</label>
+                        <input type="color" id="prompt-color" value="#00f0ff">
+                    </div>
+                    
+                    <button id="btn-generate-flash" class="btn-action" style="background: linear-gradient(45deg, #ffe600, #ffaa00); color: #000; font-size: 1rem; padding: 8px;">Générer l'Avatar (Flash)</button>
                 </div>
             </div>
-            <button id="btn-start-race" class="btn-action" style="background: linear-gradient(45deg, #00f0ff, #7000ff);">Entrer dans la Course !</button>
+            <button id="btn-deploy" class="btn-action">Valider et Rejoindre la Piste</button>
         </div>
     </div>
 
-    <!-- CANVAS VIEWPORT (JEU SOLO / LOCAL) -->
+    <!-- CANVAS DU JEU -->
     <div id="game-viewport">
         <canvas id="fff-canvas" width="900" height="420"></canvas>
     </div>
 
-    <div class="controls-hint">
-        Contrôles Warframe : [Q/D] Mouvement | [Espace] Saut / Bullet-Jump | [Shift] Glissade (Slide)
-    </div>
-
-    <!-- CONFIGURATION COFF CORE -->
     <script type="text/coff" id="coff-core-config">
-        <co name="physics_warframe">
-            <stat name="gravity" val="0.5" />
-            <stat name="walk_speed" val="5" />
-            <stat name="slide_boost" val="12" />
-            <stat name="bullet_jump_force_x" val="11" />
-            <stat name="bullet_jump_force_y" val="-13" />
+        <co name="physics_core">
+            <stat name="gravity" val="0.6" />
+            <stat name="walk_speed" val="6" />
+            <stat name="slide_boost" val="14" />
+            <stat name="jump_force_x" val="12" />
+            <stat name="jump_force_y" val="-14" />
         </co>
     </script>
 
-    <!-- ARCHITECTURE MOTEUR JS + LOCAL NANO-SERVEUR COMPATIBLE C/C++/C#/PYTHON/NODE -->
     <script>
-        // ARCHITECTURE NANO-SERVEUR LOCAL POUR PARTIE ET GARAGE
-        const LOCAL_NANO_SERVER = {
-            sessionData: {
-                vehicle: 'skate',
-                color: '#00f0ff',
-                speedMultiplier: 1.0,
-                isSoloLocal: true
-            },
-            saveGarageConfig(vehicle, color, speed) {
-                this.sessionData.vehicle = vehicle;
-                this.sessionData.color = color;
-                this.sessionData.speedMultiplier = parseFloat(speed);
-                console.log("[NanoServer Local Node/C++] Configuration Garage Sauvegardée :", this.sessionData);
+        const NANO_SERVER = {
+            accountData: { combatClass: 'soldat', vehicle: 'skate', color: '#00f0ff', eyes: 'neutre', stuff: {} },
+            
+            // Générateur de Stuff basé sur les choix du prompter
+            generateBaseStuff(cClass, vehicle) {
+                let stuff = { arme: "", gadget: "", hp: 100, speedMultiplier: 1.0 };
+                
+                // Stats Véhicule
+                if(vehicle === 'skate') { stuff.speedMultiplier = 1.1; stuff.hp -= 10; }
+                if(vehicle === 'vtt') { stuff.speedMultiplier = 0.9; stuff.hp += 20; }
+                if(vehicle === 'rollers') { stuff.speedMultiplier = 1.2; stuff.hp -= 20; }
+
+                // Équipement par Classe
+                switch(cClass) {
+                    case 'soldat':
+                        stuff.arme = "Fusil d'Assaut Laser"; stuff.gadget = "Grenade Frag";
+                        break;
+                    case 'fighter':
+                        stuff.arme = "Gants à Réaction"; stuff.gadget = "Bouclier Énergétique"; stuff.hp += 30;
+                        break;
+                    case 'medecin':
+                        stuff.arme = "Pistolet Seringue"; stuff.gadget = "Kit de Soin Zone"; stuff.speedMultiplier += 0.05;
+                        break;
+                    case 'ingenieur':
+                        stuff.arme = "Clé à molette Plasma"; stuff.gadget = "Tourelle / Mines";
+                        break;
+                }
+                this.accountData.stuff = stuff;
+                return stuff;
             }
         };
 
-        const COFF_ENGINE = {
+        const ENGINE = {
             config: {},
             init() {
-                window.addEventListener('DOMContentLoaded', () => {
-                    this.parseCOFF();
-                    this.setupUI();
-                    this.bootGame();
-                });
+                this.parseCOFF();
+                this.setupGeneratorUI();
+                this.bootGame();
             },
             parseCOFF() {
-                const rawCOFF = document.getElementById('coff-core-config').textContent;
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(`<coff>${rawCOFF}</coff>`, "text/xml");
-                const modules = xmlDoc.getElementsByTagName("co");
-                Array.from(modules).forEach(mod => {
-                    const modName = mod.getAttribute("name");
-                    this.config[modName] = {};
+                const raw = document.getElementById('coff-core-config').textContent;
+                const doc = new DOMParser().parseFromString(`<coff>${raw}</coff>`, "text/xml");
+                Array.from(doc.getElementsByTagName("co")).forEach(mod => {
+                    this.config[mod.getAttribute("name")] = {};
                     Array.from(mod.children).forEach(child => {
-                        const key = child.getAttribute("name");
-                        const val = child.getAttribute("val");
-                        this.config[modName][key] = isNaN(val) ? val : parseFloat(val);
+                        this.config[mod.getAttribute("name")][child.getAttribute("name")] = parseFloat(child.getAttribute("val"));
                     });
                 });
             },
-            setupUI() {
-                const homeLauncher = document.getElementById('home-launcher');
-                const nfsGarage = document.getElementById('nfs-garage');
-                const btnOpenGarage = document.getElementById('btn-open-garage');
-                const btnStartRace = document.getElementById('btn-start-race');
+            
+            drawEmojiStick(ctx, cClass, vehicle, color, eyes, isSliding) {
+                ctx.save();
+                if(isSliding) { ctx.scale(1.3, 0.7); ctx.translate(0, 10); }
 
-                // Canvas de prévisualisation dans le Garage
-                const gCanvas = document.getElementById('garage-canvas');
-                const gCtx = gCanvas.getContext('2d');
-
-                function renderGaragePreview() {
-                    const veh = document.getElementById('tune-vehicle').value;
-                    const col = document.getElementById('tune-color').value;
-                    
-                    gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height);
-                    gCtx.save();
-                    gCtx.translate(gCanvas.width / 2, gCanvas.height / 2 + 10);
-                    
-                    // Ombre / néon sous le véhicule
-                    gCtx.shadowColor = col;
-                    gCtx.shadowBlur = 15;
-
-                    // Stickman Preview
-                    gCtx.beginPath();
-                    gCtx.arc(0, -25, 14, 0, Math.PI * 2);
-                    gCtx.fillStyle = col;
-                    gCtx.fill();
-
-                    // Dessin Véhicule Preview
-                    gCtx.strokeStyle = col;
-                    gCtx.fillStyle = col;
-                    gCtx.lineWidth = 3;
-
-                    if (veh === 'skate') {
-                        gCtx.beginPath(); gCtx.ellipse(0, 10, 30, 7, 0, 0, Math.PI * 2); gCtx.fill();
-                        gCtx.fillStyle = '#ffe600';
-                        gCtx.beginPath(); gCtx.arc(-18, 18, 5, 0, Math.PI * 2); gCtx.arc(18, 18, 5, 0, Math.PI * 2); gCtx.fill();
-                    } else if (veh === 'vtt') {
-                        gCtx.beginPath(); gCtx.arc(-22, 10, 12, 0, Math.PI * 2); gCtx.arc(22, 10, 12, 0, Math.PI * 2); gCtx.stroke();
-                        gCtx.beginPath(); gCtx.moveTo(-22, 10); gCtx.lineTo(0, -5); gCtx.lineTo(22, 10); gCtx.stroke();
-                    } else if (veh === 'rollers') {
-                        gCtx.fillStyle = '#ffe600';
-                        gCtx.fillRect(-15, 12, 30, 6);
-                        gCtx.beginPath(); gCtx.arc(-10, 22, 4, 0, Math.PI * 2); gCtx.arc(0, 22, 4, 0, Math.PI * 2); gCtx.arc(10, 22, 4, 0, Math.PI * 2); gCtx.fill();
-                    }
-                    gCtx.restore();
-                    requestAnimationFrame(renderGaragePreview);
+                // Véhicule
+                ctx.lineWidth = 3;
+                if (vehicle === 'skate') {
+                    let grad = ctx.createLinearGradient(-30, 0, 30, 0);
+                    grad.addColorStop(0, '#222'); grad.addColorStop(0.5, color); grad.addColorStop(1, '#222');
+                    ctx.fillStyle = grad; ctx.strokeStyle = '#000';
+                    ctx.beginPath(); ctx.ellipse(0, 20, 32, 7, -0.05, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath(); ctx.arc(-20, 26, 6, 0, Math.PI * 2); ctx.arc(20, 26, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                } else if (vehicle === 'vtt') {
+                    ctx.strokeStyle = color; ctx.lineWidth = 4;
+                    ctx.beginPath(); ctx.arc(-25, 15, 14, 0, Math.PI * 2); ctx.arc(25, 15, 14, 0, Math.PI * 2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(-25, 15); ctx.lineTo(0, -5); ctx.lineTo(25, 15); ctx.lineTo(-10, 15); ctx.stroke();
+                } else if (vehicle === 'rollers') {
+                    ctx.fillStyle = color; ctx.strokeStyle = '#000';
+                    ctx.fillRect(-16, 16, 32, 8); ctx.strokeRect(-16, 16, 32, 8);
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath(); ctx.arc(-10, 28, 5, 0, Math.PI*2); ctx.arc(0, 28, 5, 0, Math.PI*2); ctx.arc(10, 28, 5, 0, Math.PI*2); ctx.fill();
                 }
 
-                btnOpenGarage.addEventListener('click', () => {
-                    homeLauncher.classList.add('hidden');
-                    nfsGarage.classList.remove('hidden');
-                    renderGaragePreview();
-                });
+                // Corps
+                ctx.beginPath(); ctx.moveTo(0, 4); ctx.lineTo(0, 18);
+                ctx.moveTo(0, 8); ctx.lineTo(-15, 12); ctx.moveTo(0, 8); ctx.lineTo(15, 12);
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.stroke();
 
-                btnStartRace.addEventListener('click', () => {
-                    const veh = document.getElementById('tune-vehicle').value;
-                    const col = document.getElementById('tune-color').value;
-                    const spd = document.getElementById('tune-engine').value;
+                // Accessoire de Classe
+                ctx.fillStyle = color;
+                if (cClass === 'soldat') ctx.fillRect(10, 8, 15, 4); 
+                else if (cClass === 'fighter') { ctx.beginPath(); ctx.arc(15, 10, 8, 0, Math.PI*2); ctx.fill(); }
+                else if (cClass === 'medecin') { 
+                    ctx.fillStyle = "#fff"; ctx.fillRect(10, 6, 10, 10); // Kit blanc
+                    ctx.fillStyle = "#ff0000"; ctx.fillRect(14, 8, 2, 6); ctx.fillRect(12, 10, 6, 2); // Croix rouge
+                } 
+                else if (cClass === 'ingenieur') ctx.fillRect(-10, 5, 8, 8);
 
-                    // Transfert des données au serveur local
-                    LOCAL_NANO_SERVER.saveGarageConfig(veh, col, spd);
+                // Tête Emoji Réaliste
+                let headGrad = ctx.createRadialGradient(-5, -20, 2, 0, -15, 18);
+                headGrad.addColorStop(0, '#ffeeaa'); headGrad.addColorStop(0.7, '#ffcc00'); headGrad.addColorStop(1, '#cc9900');
+                ctx.beginPath(); ctx.arc(0, -15, 16, 0, Math.PI * 2); ctx.fillStyle = headGrad; ctx.fill();
+                ctx.lineWidth = 1; ctx.strokeStyle = '#000'; ctx.stroke();
 
-                    nfsGarage.classList.add('hidden');
-                });
+                // Yeux dynamiques via prompter
+                ctx.fillStyle = '#000'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+                if (eyes === 'angry') {
+                    ctx.beginPath(); ctx.moveTo(-9, -22); ctx.lineTo(-3, -19); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(9, -22); ctx.lineTo(3, -19); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(-6, -18, 2, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(6, -18, 2, 0, Math.PI*2); ctx.fill();
+                } else if (eyes === 'cool') {
+                    ctx.fillRect(-10, -22, 20, 6); // Lunettes de soleil
+                } else {
+                    ctx.beginPath(); ctx.arc(-5, -18, 2.5, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(5, -18, 2.5, 0, Math.PI*2); ctx.fill();
+                }
+
+                // Bouche
+                ctx.beginPath();
+                if (isSliding) { ctx.arc(0, -10, 4, 0, Math.PI*2); ctx.fill(); } 
+                else { ctx.arc(0, -12, 6, 0.2, Math.PI - 0.2); ctx.stroke(); }
+
+                ctx.restore();
             },
+
+            setupGeneratorUI() {
+                const pClass = document.getElementById('prompt-class');
+                const pVeh = document.getElementById('prompt-vehicle');
+                const pEyes = document.getElementById('prompt-eyes');
+                const pColor = document.getElementById('prompt-color');
+                const btnFlash = document.getElementById('btn-generate-flash');
+                const flashOverlay = document.getElementById('flash-overlay');
+                const btnDeploy = document.getElementById('btn-deploy');
+
+                const gCanvas = document.getElementById('generator-canvas');
+                const gCtx = gCanvas.getContext('2d');
+
+                const updateUI = () => {
+                    const c = pClass.value; const v = pVeh.value;
+                    const stuff = NANO_SERVER.generateBaseStuff(c, v);
+                    
+                    document.getElementById('stuff-arme').innerText = stuff.arme;
+                    document.getElementById('stuff-gadget').innerText = stuff.gadget;
+                    document.getElementById('stat-hp').innerText = stuff.hp + " PV";
+                    document.getElementById('stat-spd').innerText = "x" + stuff.speedMultiplier;
+                };
+
+                const renderPreview = () => {
+                    if (document.getElementById('account-generator').classList.contains('hidden')) return;
+                    
+                    gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height);
+                    
+                    gCtx.strokeStyle = "rgba(0, 240, 255, 0.2)"; gCtx.lineWidth = 1;
+                    gCtx.beginPath();
+                    for(let i=0; i<10; i++) {
+                        gCtx.moveTo(0, 130 + i*10); gCtx.lineTo(gCanvas.width, 130 + i*10);
+                        gCtx.moveTo(40 + i*25, 120); gCtx.lineTo(0 + i*40, gCanvas.height);
+                    }
+                    gCtx.stroke();
+
+                    gCtx.save();
+                    gCtx.translate(gCanvas.width / 2, gCanvas.height / 2 + 10);
+                    gCtx.shadowColor = pColor.value; gCtx.shadowBlur = 20;
+                    
+                    gCtx.fillStyle = "rgba(0,0,0,0.6)";
+                    gCtx.beginPath(); gCtx.ellipse(0, 25, 35, 8, 0, 0, Math.PI*2); gCtx.fill();
+
+                    this.drawEmojiStick(gCtx, pClass.value, pVeh.value, pColor.value, pEyes.value, false);
+                    gCtx.restore();
+                    
+                    requestAnimationFrame(renderPreview);
+                };
+
+                // Écouteurs pour mettre à jour les stats en temps réel
+                [pClass, pVeh, pEyes, pColor].forEach(el => el.addEventListener('change', updateUI));
+
+                // Effet de Flash de création
+                btnFlash.addEventListener('click', () => {
+                    flashOverlay.classList.remove('do-flash');
+                    void flashOverlay.offsetWidth; // Trigger reflow
+                    flashOverlay.classList.add('do-flash');
+                });
+
+                btnDeploy.addEventListener('click', () => {
+                    NANO_SERVER.accountData.combatClass = pClass.value;
+                    NANO_SERVER.accountData.vehicle = pVeh.value;
+                    NANO_SERVER.accountData.color = pColor.value;
+                    NANO_SERVER.accountData.eyes = pEyes.value;
+                    document.getElementById('account-generator').classList.add('hidden');
+                });
+
+                updateUI();
+                renderPreview();
+            },
+
             bootGame() {
                 const canvas = document.getElementById("fff-canvas");
                 const ctx = canvas.getContext("2d");
-                const phys = this.config.physics_warframe;
+                const phys = this.config.physics_core;
+                let offset = 0;
 
-                let player = {
-                    x: 100, y: 300, radius: 16,
-                    vx: 0, vy: 0,
-                    isGrounded: false,
-                    isSliding: false,
-                    sautsRestants: 2
-                };
-
+                let player = { x: 100, y: 300, vx: 0, vy: 0, isGrounded: false, isSliding: false, sautsRestants: 2 };
                 let keys = {};
+                
                 window.addEventListener('keydown', e => {
-                    if (!keys[e.code] && e.code === 'Space') handleJump();
+                    if (!keys[e.code] && e.code === 'Space') {
+                        if (player.isSliding) {
+                            player.vx = (keys['KeyD'] || keys['ArrowRight']) ? phys.jump_force_x : -phys.jump_force_x;
+                            if (player.vx === 0) player.vx = phys.jump_force_x;
+                            player.vy = phys.jump_force_y; player.isSliding = false; player.isGrounded = false; player.sautsRestants = 0;
+                        } else if (player.sautsRestants > 0) { player.vy = -12; player.sautsRestants--; player.isGrounded = false; }
+                    }
                     keys[e.code] = true;
                 });
                 window.addEventListener('keyup', e => { keys[e.code] = false; });
 
-                function handleJump() {
-                    if (player.isSliding) {
-                        player.vx = (keys['KeyD'] || keys['ArrowRight']) ? phys.bullet_jump_force_x : -phys.bullet_jump_force_x;
-                        if (player.vx === 0) player.vx = phys.bullet_jump_force_x;
-                        player.vy = phys.bullet_jump_force_y;
-                        player.isSliding = false;
-                        player.isGrounded = false;
-                        player.sautsRestants = 0;
-                    } else if (player.sautsRestants > 0) {
-                        player.vy = -10;
-                        player.sautsRestants--;
-                        player.isGrounded = false;
-                    }
-                }
-
-                function drawVehicle25D(ctx, type, color) {
-                    ctx.save();
-                    ctx.strokeStyle = color;
-                    ctx.fillStyle = color;
-                    ctx.lineWidth = 3;
-
-                    if (type === 'skate') {
-                        ctx.beginPath(); ctx.ellipse(0, 16, 25, 6, -0.1, 0, Math.PI * 2); ctx.fill();
-                        ctx.fillStyle = '#ffe600';
-                        ctx.beginPath(); ctx.arc(-14, 22, 4, 0, Math.PI * 2); ctx.arc(14, 22, 4, 0, Math.PI * 2); ctx.fill();
-                    } else if (type === 'vtt') {
-                        ctx.beginPath(); ctx.arc(-18, 12, 10, 0, Math.PI * 2); ctx.arc(18, 12, 10, 0, Math.PI * 2); ctx.stroke();
-                        ctx.beginPath(); ctx.moveTo(-18, 12); ctx.lineTo(0, -2); ctx.lineTo(18, 12); ctx.stroke();
-                    } else if (type === 'rollers') {
-                        ctx.fillStyle = '#ffe600'; ctx.fillRect(-12, 14, 24, 5);
-                        ctx.beginPath(); ctx.arc(-8, 22, 3, 0, Math.PI * 2); ctx.arc(0, 22, 3, 0, Math.PI * 2); ctx.arc(8, 22, 3, 0, Math.PI * 2); ctx.fill();
-                    }
-                    ctx.restore();
-                }
-
-                function update() {
-                    const currentSpeed = phys.walk_speed * LOCAL_NANO_SERVER.sessionData.speedMultiplier;
+                const update = () => {
+                    const currentSpeed = phys.walk_speed * (NANO_SERVER.accountData.stuff.speedMultiplier || 1);
 
                     if (keys['ShiftLeft'] || keys['ShiftRight']) {
                         if (!player.isSliding && player.isGrounded) {
@@ -489,73 +430,52 @@
                             const dir = (keys['KeyD'] || keys['ArrowRight']) ? 1 : ((keys['KeyA'] || keys['ArrowLeft']) ? -1 : 1);
                             player.vx = dir * phys.slide_boost;
                         }
-                    } else {
-                        player.isSliding = false;
-                    }
+                    } else player.isSliding = false;
 
                     if (!player.isSliding) {
                         if (keys['KeyD'] || keys['ArrowRight']) player.vx = currentSpeed;
                         else if (keys['KeyA'] || keys['ArrowLeft']) player.vx = -currentSpeed;
                         else player.vx *= 0.8;
-                    } else {
-                        player.vx *= 0.96;
-                    }
+                    } else player.vx *= 0.96;
 
-                    player.x += player.vx;
-                    player.y += player.vy;
-                    player.vy += phys.gravity;
+                    player.x += player.vx; player.y += player.vy; player.vy += phys.gravity;
 
-                    const floorY = canvas.height - 40;
-                    if (player.y + player.radius >= floorY) {
-                        player.y = floorY - player.radius;
-                        player.vy = 0;
-                        player.isGrounded = true;
-                        player.sautsRestants = 2;
-                    }
+                    const floorY = canvas.height - 60;
+                    if (player.y >= floorY) { player.y = floorY; player.vy = 0; player.isGrounded = true; player.sautsRestants = 2; }
+                    if (player.x < 20) player.x = 20; if (player.x > canvas.width - 20) player.x = canvas.width - 20;
 
-                    if (player.x - player.radius < 0) player.x = player.radius;
-                    if (player.x + player.radius > canvas.width) player.x = canvas.width - player.radius;
+                    offset -= player.vx * 0.5; if (offset <= -40) offset += 40; if (offset >= 40) offset -= 40;
 
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    ctx.fillStyle = "#1a1a24"; ctx.fillRect(0, floorY + 20, canvas.width, canvas.height - floorY);
+                    ctx.strokeStyle = NANO_SERVER.accountData.color; ctx.lineWidth = 3;
+                    ctx.beginPath(); ctx.moveTo(0, floorY + 20); ctx.lineTo(canvas.width, floorY + 20); ctx.stroke();
 
-                    // Sol Neon
-                    ctx.fillStyle = "#ff0055";
-                    ctx.fillRect(0, floorY, canvas.width, 40);
-                    ctx.strokeStyle = "#00f0ff";
-                    ctx.lineWidth = 4;
-                    ctx.beginPath(); ctx.moveTo(0, floorY); ctx.lineTo(canvas.width, floorY); ctx.stroke();
+                    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; ctx.lineWidth = 2;
+                    for (let i = -1; i < 25; i++) {
+                        let lineX = (i * 40) + offset;
+                        ctx.beginPath(); ctx.moveTo(lineX + 30, floorY + 20); ctx.lineTo(lineX - 40, canvas.height); ctx.stroke();
+                    }
 
-                    // Stickman avec Tuning appliqué
-                    ctx.save();
-                    ctx.translate(player.x, player.y);
-                    if (player.isSliding) ctx.scale(1.2, 0.6);
+                    ctx.save(); ctx.translate(player.x, player.y);
+                    ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.beginPath(); ctx.ellipse(0, 30, player.isSliding ? 40 : 25, 6, 0, 0, Math.PI*2); ctx.fill();
+                    ctx.shadowColor = NANO_SERVER.accountData.color; ctx.shadowBlur = player.isSliding ? 25 : 10;
 
-                    ctx.beginPath();
-                    ctx.arc(0, -12, player.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = LOCAL_NANO_SERVER.sessionData.color;
-                    ctx.fill();
-                    ctx.lineWidth = 2;
-                    ctx.strokeStyle = "#000";
-                    ctx.stroke();
-
-                    ctx.beginPath();
-                    ctx.moveTo(0, 4); ctx.lineTo(0, 14);
-                    ctx.strokeStyle = LOCAL_NANO_SERVER.sessionData.color;
-                    ctx.lineWidth = 4;
-                    ctx.stroke();
-
-                    drawVehicle25D(ctx, LOCAL_NANO_SERVER.sessionData.vehicle, LOCAL_NANO_SERVER.sessionData.color);
-
+                    this.drawEmojiStick(
+                        ctx, NANO_SERVER.accountData.combatClass, NANO_SERVER.accountData.vehicle, 
+                        NANO_SERVER.accountData.color, NANO_SERVER.accountData.eyes, player.isSliding
+                    );
                     ctx.restore();
 
                     requestAnimationFrame(update);
-                }
-
+                };
                 update();
             }
         };
 
-        COFF_ENGINE.init();
+        ENGINE.init();
     </script>
 </body>
 </html>
+
