@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Launcher - Création de Personnage (Coff Engine)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0b0f19;
+            color: #f0f6fc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .launcher-container {
+            width: 90%;
+            max-width: 900px;
+            background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+            border: 2px solid #30363d;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            padding: 30px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 15px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            color: #58a6ff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        header p {
+            color: #8b949e;
+            font-size: 0.95rem;
+            margin-top: 5px;
+        }
+
+        .creation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .creation-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .panel h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #7ee787;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            color: #c9d1d9;
+            margin-bottom: 5px;
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        select:focus, input[type="text"]:focus {
+            border-color: #58a6ff;
+            outline: none;
+        }
+
+        .preview-box {
+            grid-column: 1 / -1;
+            background: #0d1117;
+            border: 2px dashed #30363d;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .preview-emojis {
+            font-size: 3rem;
+            letter-spacing: 15px;
+        }
+
+        .preview-text {
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+
+        .coff-code-display {
+            background: #010409;
+            color: #ff7b72;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            text-align: left;
+            width: 100%;
+            margin-top: 10px;
+            overflow-x: auto;
+        }
+
+        .btn-launch {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-launch:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="launcher-container">
+        <header>
+            <h1>Coff Launcher // Tour Ascension</h1>
+            <p>Création de Personnage - Mode Double Dash (Roller / Vélo / Skate + TPS Fight)</p>
+        </header>
+
+        <div class="creation-grid">
+            <!-- Panneau Pilote & Back-Rider -->
+            <div class="panel">
+                <h2>👤 Équipe 3D (Duo)</h2>
+                <div class="form-group">
+                    <label for="pilot">Pilote (Devant)</label>
+                    <select id="pilot" onchange="updatePreview()">
+                        <option value="👤 🛹 Roller Speedster">👤 🛹 Roller Speedster</option>
+                        <option value="🧍‍♂️ 🚲 Bike Racer">🧍‍♂️ 🚲 Bike Racer</option>
+                        <option value="🏎️ 🛼 Dual Street-Skater">🏎️ 🛼 Dual Street-Skater</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="backrider">Combattant (Arrière - Double Dash)</label>
+                    <select id="backrider" onchange="updatePreview()">
+                        <option value="⚔️ Brawler Attaque A/B">⚔️ Brawler Attaque A/B</option>
+                        <option value="💥 Spécialiste Lourds / Combos">💥 Spécialiste Lourds / Combos</option>
+                        <option value="⚡ Mage de Mouvement Rush">⚡ Mage de Mouvement Rush</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Panneau Véhicule & Classe -->
+            <div class="panel">
+                <h2>🛼 Véhicule & Style</h2>
+                <div class="form-group">
+                    <label for="vehicle">Châssis / Support</label>
+                    <select id="vehicle" onchange="updatePreview()">
+                        <option value="🛼 Roller Skate Hyper-Glisse">🛼 Roller Skate Hyper-Glisse</option>
+                        <option value="🚲 Vélo Tout-Terrain Inertie">🚲 Vélo Tout-Terrain Inertie</option>
+                        <option value="🛹 Skate Arcade Custom">🛹 Skate Arcade Custom</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="classType">Classe de Combat & Loot</label>
+                    <select id="classType" onchange="updatePreview()">
+                        <option value="🎁 Loot Mob Combo A-A-B">🎁 Loot Mob Combo A-A-B</option>
+                        <option value="🔥 Rush Ascensif 10 Étages">🔥 Rush Ascensif 10 Étages</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Aperçu Emojistique & Code Coff généré -->
+            <div class="preview-box">
+                <div class="preview-emojis" id="previewEmojis">👤 🛹 ⚔️ 🛼</div>
+                <div class="preview-text" id="previewDesc">Configuration active prête pour l'ascension de la Tour.</div>
+                <div class="coff-code-display" id="coffCodeOutput">
+> 
+    &lt;CharacterCreation_Setup&gt;
+        &lt;Visual_Avatar&gt; 👤 🛹 Roller Speedster &lt;/Visual_Avatar&gt;
+        &lt;BackRider&gt; ⚔️ Brawler Attaque A/B &lt;/BackRider&gt;
+        &lt;Vehicle_Chassis&gt; 🛼 Roller Skate Hyper-Glisse &lt;/Vehicle_Chassis&gt;
+    &lt;/CharacterCreation_Setup&gt;
+&lt;
+                </div>
+            </div>
+
+            <button class="btn-launch" onclick="launchGame()">Lancer l'Ascension (Ginode Server)</button>
+        </div>
+    </div>
+
+    <script>
+        function updatePreview() {
+            const pilot = document.getElementById('pilot').value;
+            const backrider = document.getElementById('backrider').value;
+            const vehicle = document.getElementById('vehicle').value;
+            const classType = document.getElementById('classType').value;
+
+            // Extraire les émojis principaux pour l'affichage visuel
+            const e1 = pilot.split(' ')[0];
+            const e2 = vehicle.split(' ')[0];
+            const e3 = backrider.split(' ')[0];
+            const e4 = classType.split(' ')[0];
+
+            document.getElementById('previewEmojis').innerText = `${e1} ${e2} ${e3} ${e4}`;
+            document.getElementById('previewDesc').innerText = `${pilot} + ${backrider} sur ${vehicle}`;
+
+            // Mettre à jour le bloc de syntaxe Coff fléchée en temps réel
+            const coffSyntax = `> 
+    &lt;CharacterCreation_Setup&gt;
+        &lt;Visual_Avatar&gt; "${pilot}" &lt;/Visual_Avatar&gt;
+        &lt;Back_Rider&gt; "${backrider}" &lt;/Back_Rider&gt;
+        &lt;Vehicle_Chassis&gt; "${vehicle}" &lt;/Vehicle_Chassis&gt;
+        &lt;Class_Rules&gt; "${classType}" &lt;/Class_Rules&gt;
+        
+        > connexion <
+            init_tower_ascent = "Floor_Tier_10_Center"
+            sync_physics_engine = "Custom_Roller_TPS_Matrix"
+            load_launcher_lobby = "Ginode_Online_Server"
+        > /connexion <
+        
+    &lt;/CharacterCreation_Setup&gt;
+&lt;`;
+
+            document.getElementById('coffCodeOutput').innerHTML = coffSyntax;
+        }
+
+        function launchGame() {
+            alert("Connexion au serveur Ginode... Lancement de la course-combat et de l'ascension des étages !");
+        }
+    </script>
+</body>
+</html>
