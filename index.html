@@ -3,479 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FFF : Fast For Fight - Course & Combat 2.5D</title>
-    <meta name="description" content="FFF : Course combat 2.5D arcade survolté !">
-    <link rel="manifest" href="data:application/manifest+json,{
-        %22name%22:%22Fast%20For%20Fight%22,
-        %22short_name%22:%22FFF%22,
-        %22start_url%22:%22.%22,
-        %22display%22:%22standalone%22,
-        %22background_color%22:%22#08090d%22,
-        %22theme_color%22:%22#ff0055%22
-    }">
-    
-    <style id="fff-main-styles">
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body.fff-app {
-            background-color: #08090d;
-            color: #ffffff;
-            font-family: 'Impact', 'Arial Black', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-            padding-bottom: 20px;
+    <title>FFF : Fast For Fight - 3D Toon Parkour</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background-color: #08090d; 
+            color: #fff; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            overflow: hidden; /* Empêche le scroll, le jeu prend tout l'écran */
         }
-
-        /* HEADER & LOGO */
-        .fff-header {
-            width: 100%;
-            padding: 15px 10px;
-            background: linear-gradient(180deg, rgba(255, 0, 85, 0.25) 0%, rgba(8, 9, 13, 0) 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-bottom: 2px solid #00f0ff;
-            box-shadow: 0 5px 25px rgba(0, 240, 255, 0.2);
-        }
-
-        .logo-container { width: 100%; max-width: 450px; text-align: center; }
-        .logo-img { width: 100%; max-height: 140px; object-fit: contain; filter: drop-shadow(0px 0px 12px #ff0055); }
-
-        .fff-slogan {
-            font-family: 'Segoe UI', sans-serif; font-weight: 800; font-size: 0.9rem;
-            color: #ffe600; text-transform: uppercase; letter-spacing: 2px; margin-top: 8px;
-            background: rgba(0, 0, 0, 0.6); padding: 4px 14px; border-radius: 20px; border: 1px solid #ffe600;
-        }
-
-        /* OVERLAYS & MENUS */
-        .overlay-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(8, 9, 13, 0.96); display: flex; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(10px);
-        }
-
-        /* GENERATOR 2.5D UI */
-        .generator-container {
-            display: flex; flex-direction: column; width: 95%; max-width: 900px;
-            background: #0d0e15; border: 3px solid #00f0ff; border-radius: 12px; padding: 20px;
-            box-shadow: 0 0 40px rgba(0, 240, 255, 0.4);
-        }
-
-        .generator-header {
-            color: #ff0055; font-size: 1.8rem; text-transform: uppercase; text-align: center;
-            margin-bottom: 15px; border-bottom: 2px dashed #ffe600; padding-bottom: 8px;
-        }
-
-        .generator-body { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
         
-        .preview-panel {
-            display: flex; flex-direction: column; gap: 10px;
+        /* UI OVERLAY */
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            z-index: 10;
         }
 
-        .generator-preview {
-            background: radial-gradient(circle, #1a1c29 0%, #000 100%);
-            border: 2px solid #ffe600; border-radius: 8px; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; padding: 15px; position: relative;
-            overflow: hidden;
+        .header-hud {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
-        /* Effet de flash lors de la génération */
-        .flash-effect {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; opacity: 0; pointer-events: none; z-index: 10;
-        }
-        @keyframes flashAnim {
-            0% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-        .do-flash { animation: flashAnim 0.6s ease-out; }
-
-        /* Stats & Stuff Panel */
-        .stuff-panel {
-            background: #12131c; border: 1px solid #00f0ff; border-radius: 8px;
-            padding: 10px; font-family: 'Segoe UI', sans-serif; font-size: 0.85rem; color: #d0d0e0;
-        }
-        .stuff-panel h3 { color: #00f0ff; margin-bottom: 5px; text-transform: uppercase; font-size: 1rem; }
-        .stat-line { display: flex; justify-content: space-between; margin-bottom: 3px; border-bottom: 1px solid #222; }
-        .stat-val { color: #ffe600; font-weight: bold; }
-
-        /* Prompters (Inputs) */
-        .prompter-panel { display: flex; flex-direction: column; gap: 10px; font-family: 'Segoe UI', sans-serif; }
-        .prompter-item { display: flex; flex-direction: column; gap: 3px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; }
-        .prompter-item label { color: #00f0ff; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
-        .prompter-item select, .prompter-item input {
-            background: #181a26; color: #fff; border: 1px solid #ff0055;
-            padding: 6px; border-radius: 4px; font-weight: bold; font-family: 'Segoe UI', sans-serif;
+        .logo {
+            font-family: 'Impact', sans-serif;
+            font-size: 2.5rem;
+            color: #00f0ff;
+            text-transform: uppercase;
+            font-style: italic;
+            text-shadow: 2px 2px 0px #ff0055;
+            -webkit-text-stroke: 1px #fff;
         }
 
-        .btn-action {
-            background: linear-gradient(45deg, #ff0055, #ff5500); color: white; border: none;
-            padding: 12px 24px; font-size: 1.2rem; font-weight: bold; border-radius: 8px;
-            cursor: pointer; width: 100%; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px;
-            transition: transform 0.2s, box-shadow 0.2s; font-family: 'Impact', sans-serif;
+        .controls-hint {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid #ffe600;
+            align-self: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #ffe600;
         }
-        .btn-action:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255, 0, 85, 0.8); }
 
-        #game-viewport {
-            position: relative; border: 4px solid #00f0ff; box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
-            border-radius: 12px; overflow: hidden; margin-top: 15px;
+        /* 3D CANVAS CONTAINER */
+        #game-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
         }
-        canvas { display: block; background-color: #0d0e15; }
-        .hidden { display: none !important; }
     </style>
+    <!-- Chargement de la bibliothèque 3D Three.js via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
-<body class="fff-app">
+<body>
 
-    <header class="fff-header">
-        <div class="logo-container">
-            <img src="https://raw.githubusercontent.com/samuelhaihornberg/Testcodeinnove/6d062d8ce8b894b2d3ea335eabe3283448273e17/images%20%26%20videos/1786846892107.png" alt="FFF Logo" class="logo-img">
-        </div>
-        <p class="fff-slogan">Ride, Combats & Survis à la Zone !</p>
-    </header>
-
-    <!-- GENERATEUR 2.5D FLASH & STUFF DE BASE -->
-    <div id="account-generator" class="overlay-screen">
-        <div class="generator-container">
-            <div class="generator-header"> Création de Compte & EmojiStick 2.5D</div>
-            <div class="generator-body">
-                
-                <!-- PANNEAU APERÇU ET STUFF -->
-                <div class="preview-panel">
-                    <div class="generator-preview">
-                        <div id="flash-overlay" class="flash-effect"></div>
-                        <canvas id="generator-canvas" width="280" height="200"></canvas>
-                        <span style="color:#ffe600; font-family:sans-serif; font-size:0.8rem; margin-top:8px; z-index: 2;">Aperçu Temps Réel</span>
-                    </div>
-                    
-                    <div class="stuff-panel" id="base-stuff-display">
-                        <h3>Équipement & Stats de Base</h3>
-                        <div class="stat-line"><span>Arme principale :</span> <span class="stat-val" id="stuff-arme">-</span></div>
-                        <div class="stat-line"><span>Gadget / Soutien :</span> <span class="stat-val" id="stuff-gadget">-</span></div>
-                        <div class="stat-line"><span>PV Max :</span> <span class="stat-val" id="stat-hp">-</span></div>
-                        <div class="stat-line"><span>Vitesse :</span> <span class="stat-val" id="stat-spd">-</span></div>
-                    </div>
-                </div>
-
-                <!-- PROMPTERS DE PERSONNALISATION -->
-                <div class="prompter-panel">
-                    <div class="prompter-item">
-                        <label>1. Classe Opérationnelle</label>
-                        <select id="prompt-class">
-                            <option value="soldat">Soldat (Assaut Équilibré)</option>
-                            <option value="fighter">Fighter (Mêlée & Tank)</option>
-                            <option value="medecin">Médecin (Soin & Survie)</option>
-                            <option value="ingenieur">Ingénieur (Pièges & Tech)</option>
-                        </select>
-                    </div>
-                    <div class="prompter-item">
-                        <label>2. Monture 2.5D</label>
-                        <select id="prompt-vehicle">
-                            <option value="skate">Skateboard</option>
-                            <option value="vtt">VTT Cross</option>
-                            <option value="rollers">Rollers</option>
-                        </select>
-                    </div>
-                    <div class="prompter-item">
-                        <label>3. Humeur (Yeux)</label>
-                        <select id="prompt-eyes">
-                            <option value="neutre">Concentré (Neutre)</option>
-                            <option value="angry">Furieux (Angry)</option>
-                            <option value="cool">Détendu (Lunettes)</option>
-                        </select>
-                    </div>
-                    <div class="prompter-item">
-                        <label>4. Couleur Combinaison</label>
-                        <input type="color" id="prompt-color" value="#00f0ff">
-                    </div>
-                    
-                    <button id="btn-generate-flash" class="btn-action" style="background: linear-gradient(45deg, #ffe600, #ffaa00); color: #000; font-size: 1rem; padding: 8px;">Générer l'Avatar (Flash)</button>
-                </div>
+    <div id="ui-layer">
+        <div class="header-hud">
+            <h1 class="logo">FFF</h1>
+            <div style="background: rgba(255,0,85,0.8); padding: 5px 15px; border-radius: 20px; font-weight: bold;">
+                Moteur 3D Toon - Build 0.1
             </div>
-            <button id="btn-deploy" class="btn-action">Valider et Rejoindre la Piste</button>
+        </div>
+        <div class="controls-hint">
+            [Z/Q/S/D] Déplacement | [Espace] Saut | [Shift] Glissade Vitesse
         </div>
     </div>
 
-    <!-- CANVAS DU JEU -->
-    <div id="game-viewport">
-        <canvas id="fff-canvas" width="900" height="420"></canvas>
-    </div>
+    <div id="game-container"></div>
 
+    <!-- CONFIGURATION COFF POUR LA LOGIQUE (Adaptée à la 3D) -->
     <script type="text/coff" id="coff-core-config">
-        <co name="physics_core">
-            <stat name="gravity" val="0.6" />
-            <stat name="walk_speed" val="6" />
-            <stat name="slide_boost" val="14" />
-            <stat name="jump_force_x" val="12" />
-            <stat name="jump_force_y" val="-14" />
+        <co name="physics_3d">
+            <stat name="gravity" val="0.8" />
+            <stat name="run_speed" val="0.4" />
+            <stat name="jump_force" val="1.2" />
+            <stat name="slide_boost" val="1.8" />
         </co>
     </script>
 
     <script>
-        const NANO_SERVER = {
-            accountData: { combatClass: 'soldat', vehicle: 'skate', color: '#00f0ff', eyes: 'neutre', stuff: {} },
-            
-            // Générateur de Stuff basé sur les choix du prompter
-            generateBaseStuff(cClass, vehicle) {
-                let stuff = { arme: "", gadget: "", hp: 100, speedMultiplier: 1.0 };
-                
-                // Stats Véhicule
-                if(vehicle === 'skate') { stuff.speedMultiplier = 1.1; stuff.hp -= 10; }
-                if(vehicle === 'vtt') { stuff.speedMultiplier = 0.9; stuff.hp += 20; }
-                if(vehicle === 'rollers') { stuff.speedMultiplier = 1.2; stuff.hp -= 20; }
+        // --- 1. INITIALISATION DU MOTEUR 3D ---
+        const container = document.getElementById('game-container');
+        const scene = new THREE.Scene();
+        // Ciel couleur bleu "Disney"
+        scene.background = new THREE.Color('#40bcf4'); 
+        scene.fog = new THREE.Fog('#40bcf4', 20, 100); // Effet de profondeur atmosphérique
 
-                // Équipement par Classe
-                switch(cClass) {
-                    case 'soldat':
-                        stuff.arme = "Fusil d'Assaut Laser"; stuff.gadget = "Grenade Frag";
-                        break;
-                    case 'fighter':
-                        stuff.arme = "Gants à Réaction"; stuff.gadget = "Bouclier Énergétique"; stuff.hp += 30;
-                        break;
-                    case 'medecin':
-                        stuff.arme = "Pistolet Seringue"; stuff.gadget = "Kit de Soin Zone"; stuff.speedMultiplier += 0.05;
-                        break;
-                    case 'ingenieur':
-                        stuff.arme = "Clé à molette Plasma"; stuff.gadget = "Tourelle / Mines";
-                        break;
-                }
-                this.accountData.stuff = stuff;
-                return stuff;
-            }
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true; // Activer les ombres
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        // --- 2. LUMIÈRES (Indispensable pour le Toon Shading) ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(50, 100, 50);
+        dirLight.castShadow = true;
+        dirLight.shadow.camera.top = 50;
+        dirLight.shadow.camera.bottom = -50;
+        dirLight.shadow.camera.left = -50;
+        dirLight.shadow.camera.right = 50;
+        scene.add(dirLight);
+
+        // --- 3. MATÉRIAUX TOON (Style Dessin Animé) ---
+        // Le MeshToonMaterial donne cet aspect aplat de couleur
+        const colorPalette = {
+            emojiYellow: new THREE.MeshToonMaterial({ color: 0xffcc00 }),
+            suitBlue: new THREE.MeshToonMaterial({ color: 0x00f0ff }),
+            wallPink: new THREE.MeshToonMaterial({ color: 0xff0055 }),
+            groundDark: new THREE.MeshToonMaterial({ color: 0x1a1c29 })
         };
 
-        const ENGINE = {
-            config: {},
-            init() {
-                this.parseCOFF();
-                this.setupGeneratorUI();
-                this.bootGame();
-            },
-            parseCOFF() {
-                const raw = document.getElementById('coff-core-config').textContent;
-                const doc = new DOMParser().parseFromString(`<coff>${raw}</coff>`, "text/xml");
-                Array.from(doc.getElementsByTagName("co")).forEach(mod => {
-                    this.config[mod.getAttribute("name")] = {};
-                    Array.from(mod.children).forEach(child => {
-                        this.config[mod.getAttribute("name")][child.getAttribute("name")] = parseFloat(child.getAttribute("val"));
-                    });
-                });
-            },
-            
-            drawEmojiStick(ctx, cClass, vehicle, color, eyes, isSliding) {
-                ctx.save();
-                if(isSliding) { ctx.scale(1.3, 0.7); ctx.translate(0, 10); }
+        // --- 4. CRÉATION DU JOUEUR (EmojiStick 3D) ---
+        const playerGroup = new THREE.Group();
+        
+        // Tête Emoji
+        const headGeo = new THREE.SphereGeometry(1, 32, 32);
+        const head = new THREE.Mesh(headGeo, colorPalette.emojiYellow);
+        head.position.y = 3;
+        head.castShadow = true;
+        playerGroup.add(head);
 
-                // Véhicule
-                ctx.lineWidth = 3;
-                if (vehicle === 'skate') {
-                    let grad = ctx.createLinearGradient(-30, 0, 30, 0);
-                    grad.addColorStop(0, '#222'); grad.addColorStop(0.5, color); grad.addColorStop(1, '#222');
-                    ctx.fillStyle = grad; ctx.strokeStyle = '#000';
-                    ctx.beginPath(); ctx.ellipse(0, 20, 32, 7, -0.05, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-                    ctx.fillStyle = '#fff';
-                    ctx.beginPath(); ctx.arc(-20, 26, 6, 0, Math.PI * 2); ctx.arc(20, 26, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-                } else if (vehicle === 'vtt') {
-                    ctx.strokeStyle = color; ctx.lineWidth = 4;
-                    ctx.beginPath(); ctx.arc(-25, 15, 14, 0, Math.PI * 2); ctx.arc(25, 15, 14, 0, Math.PI * 2); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(-25, 15); ctx.lineTo(0, -5); ctx.lineTo(25, 15); ctx.lineTo(-10, 15); ctx.stroke();
-                } else if (vehicle === 'rollers') {
-                    ctx.fillStyle = color; ctx.strokeStyle = '#000';
-                    ctx.fillRect(-16, 16, 32, 8); ctx.strokeRect(-16, 16, 32, 8);
-                    ctx.fillStyle = '#fff';
-                    ctx.beginPath(); ctx.arc(-10, 28, 5, 0, Math.PI*2); ctx.arc(0, 28, 5, 0, Math.PI*2); ctx.arc(10, 28, 5, 0, Math.PI*2); ctx.fill();
-                }
+        // Corps Stick
+        const bodyGeo = new THREE.CylinderGeometry(0.5, 0.5, 2, 16);
+        const body = new THREE.Mesh(bodyGeo, colorPalette.suitBlue);
+        body.position.y = 1.5;
+        body.castShadow = true;
+        playerGroup.add(body);
 
-                // Corps
-                ctx.beginPath(); ctx.moveTo(0, 4); ctx.lineTo(0, 18);
-                ctx.moveTo(0, 8); ctx.lineTo(-15, 12); ctx.moveTo(0, 8); ctx.lineTo(15, 12);
-                ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.stroke();
+        // "Skate" ou socle sous les pieds
+        const skateGeo = new THREE.BoxGeometry(1.5, 0.2, 3);
+        const skate = new THREE.Mesh(skateGeo, colorPalette.wallPink);
+        skate.position.y = 0.1;
+        skate.castShadow = true;
+        playerGroup.add(skate);
 
-                // Accessoire de Classe
-                ctx.fillStyle = color;
-                if (cClass === 'soldat') ctx.fillRect(10, 8, 15, 4); 
-                else if (cClass === 'fighter') { ctx.beginPath(); ctx.arc(15, 10, 8, 0, Math.PI*2); ctx.fill(); }
-                else if (cClass === 'medecin') { 
-                    ctx.fillStyle = "#fff"; ctx.fillRect(10, 6, 10, 10); // Kit blanc
-                    ctx.fillStyle = "#ff0000"; ctx.fillRect(14, 8, 2, 6); ctx.fillRect(12, 10, 6, 2); // Croix rouge
-                } 
-                else if (cClass === 'ingenieur') ctx.fillRect(-10, 5, 8, 8);
+        scene.add(playerGroup);
+        playerGroup.position.set(0, 0, 0);
 
-                // Tête Emoji Réaliste
-                let headGrad = ctx.createRadialGradient(-5, -20, 2, 0, -15, 18);
-                headGrad.addColorStop(0, '#ffeeaa'); headGrad.addColorStop(0.7, '#ffcc00'); headGrad.addColorStop(1, '#cc9900');
-                ctx.beginPath(); ctx.arc(0, -15, 16, 0, Math.PI * 2); ctx.fillStyle = headGrad; ctx.fill();
-                ctx.lineWidth = 1; ctx.strokeStyle = '#000'; ctx.stroke();
+        // --- 5. CRÉATION DU LABYRINTHE (Niveau 3D) ---
+        // Sol
+        const groundGeo = new THREE.PlaneGeometry(200, 200);
+        const ground = new THREE.Mesh(groundGeo, colorPalette.groundDark);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
 
-                // Yeux dynamiques via prompter
-                ctx.fillStyle = '#000'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
-                if (eyes === 'angry') {
-                    ctx.beginPath(); ctx.moveTo(-9, -22); ctx.lineTo(-3, -19); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(9, -22); ctx.lineTo(3, -19); ctx.stroke();
-                    ctx.beginPath(); ctx.arc(-6, -18, 2, 0, Math.PI*2); ctx.fill();
-                    ctx.beginPath(); ctx.arc(6, -18, 2, 0, Math.PI*2); ctx.fill();
-                } else if (eyes === 'cool') {
-                    ctx.fillRect(-10, -22, 20, 6); // Lunettes de soleil
-                } else {
-                    ctx.beginPath(); ctx.arc(-5, -18, 2.5, 0, Math.PI*2); ctx.fill();
-                    ctx.beginPath(); ctx.arc(5, -18, 2.5, 0, Math.PI*2); ctx.fill();
-                }
+        // Murs du labyrinthe générés aléatoirement
+        const walls = [];
+        const wallGeo = new THREE.BoxGeometry(4, 10, 15);
+        for(let i = 0; i < 40; i++) {
+            const wall = new THREE.Mesh(wallGeo, colorPalette.wallPink);
+            wall.position.x = (Math.random() - 0.5) * 100;
+            wall.position.z = (Math.random() - 0.5) * 100 - 20; // Pousser les murs vers l'avant
+            wall.position.y = 5;
+            wall.rotation.y = Math.random() * Math.PI;
+            wall.castShadow = true;
+            wall.receiveShadow = true;
+            scene.add(wall);
+            walls.push(wall);
+        }
 
-                // Bouche
-                ctx.beginPath();
-                if (isSliding) { ctx.arc(0, -10, 4, 0, Math.PI*2); ctx.fill(); } 
-                else { ctx.arc(0, -12, 6, 0.2, Math.PI - 0.2); ctx.stroke(); }
+        // --- 6. LOGIQUE PHYSIQUE ET CONTRÔLES ---
+        let velocity = { x: 0, y: 0, z: 0 };
+        let isGrounded = true;
+        let isSliding = false;
 
-                ctx.restore();
-            },
+        const keys = {};
+        window.addEventListener('keydown', (e) => keys[e.code] = true);
+        window.addEventListener('keyup', (e) => keys[e.code] = false);
 
-            setupGeneratorUI() {
-                const pClass = document.getElementById('prompt-class');
-                const pVeh = document.getElementById('prompt-vehicle');
-                const pEyes = document.getElementById('prompt-eyes');
-                const pColor = document.getElementById('prompt-color');
-                const btnFlash = document.getElementById('btn-generate-flash');
-                const flashOverlay = document.getElementById('flash-overlay');
-                const btnDeploy = document.getElementById('btn-deploy');
+        // Positionnement de la caméra (TPS)
+        const cameraOffset = new THREE.Vector3(0, 6, 12);
 
-                const gCanvas = document.getElementById('generator-canvas');
-                const gCtx = gCanvas.getContext('2d');
+        function animate() {
+            requestAnimationFrame(animate);
 
-                const updateUI = () => {
-                    const c = pClass.value; const v = pVeh.value;
-                    const stuff = NANO_SERVER.generateBaseStuff(c, v);
-                    
-                    document.getElementById('stuff-arme').innerText = stuff.arme;
-                    document.getElementById('stuff-gadget').innerText = stuff.gadget;
-                    document.getElementById('stat-hp').innerText = stuff.hp + " PV";
-                    document.getElementById('stat-spd').innerText = "x" + stuff.speedMultiplier;
-                };
+            // Simulation du COFF Parser pour les stats (simplifié)
+            const speed = isSliding ? 0.8 : 0.4; 
+            const gravity = 0.05;
 
-                const renderPreview = () => {
-                    if (document.getElementById('account-generator').classList.contains('hidden')) return;
-                    
-                    gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height);
-                    
-                    gCtx.strokeStyle = "rgba(0, 240, 255, 0.2)"; gCtx.lineWidth = 1;
-                    gCtx.beginPath();
-                    for(let i=0; i<10; i++) {
-                        gCtx.moveTo(0, 130 + i*10); gCtx.lineTo(gCanvas.width, 130 + i*10);
-                        gCtx.moveTo(40 + i*25, 120); gCtx.lineTo(0 + i*40, gCanvas.height);
-                    }
-                    gCtx.stroke();
+            // Contrôles directionnels
+            if (keys['KeyW'] || keys['ArrowUp']) velocity.z -= speed;
+            if (keys['KeyS'] || keys['ArrowDown']) velocity.z += speed;
+            if (keys['KeyA'] || keys['ArrowLeft']) velocity.x -= speed;
+            if (keys['KeyD'] || keys['ArrowRight']) velocity.x += speed;
 
-                    gCtx.save();
-                    gCtx.translate(gCanvas.width / 2, gCanvas.height / 2 + 10);
-                    gCtx.shadowColor = pColor.value; gCtx.shadowBlur = 20;
-                    
-                    gCtx.fillStyle = "rgba(0,0,0,0.6)";
-                    gCtx.beginPath(); gCtx.ellipse(0, 25, 35, 8, 0, 0, Math.PI*2); gCtx.fill();
-
-                    this.drawEmojiStick(gCtx, pClass.value, pVeh.value, pColor.value, pEyes.value, false);
-                    gCtx.restore();
-                    
-                    requestAnimationFrame(renderPreview);
-                };
-
-                // Écouteurs pour mettre à jour les stats en temps réel
-                [pClass, pVeh, pEyes, pColor].forEach(el => el.addEventListener('change', updateUI));
-
-                // Effet de Flash de création
-                btnFlash.addEventListener('click', () => {
-                    flashOverlay.classList.remove('do-flash');
-                    void flashOverlay.offsetWidth; // Trigger reflow
-                    flashOverlay.classList.add('do-flash');
-                });
-
-                btnDeploy.addEventListener('click', () => {
-                    NANO_SERVER.accountData.combatClass = pClass.value;
-                    NANO_SERVER.accountData.vehicle = pVeh.value;
-                    NANO_SERVER.accountData.color = pColor.value;
-                    NANO_SERVER.accountData.eyes = pEyes.value;
-                    document.getElementById('account-generator').classList.add('hidden');
-                });
-
-                updateUI();
-                renderPreview();
-            },
-
-            bootGame() {
-                const canvas = document.getElementById("fff-canvas");
-                const ctx = canvas.getContext("2d");
-                const phys = this.config.physics_core;
-                let offset = 0;
-
-                let player = { x: 100, y: 300, vx: 0, vy: 0, isGrounded: false, isSliding: false, sautsRestants: 2 };
-                let keys = {};
-                
-                window.addEventListener('keydown', e => {
-                    if (!keys[e.code] && e.code === 'Space') {
-                        if (player.isSliding) {
-                            player.vx = (keys['KeyD'] || keys['ArrowRight']) ? phys.jump_force_x : -phys.jump_force_x;
-                            if (player.vx === 0) player.vx = phys.jump_force_x;
-                            player.vy = phys.jump_force_y; player.isSliding = false; player.isGrounded = false; player.sautsRestants = 0;
-                        } else if (player.sautsRestants > 0) { player.vy = -12; player.sautsRestants--; player.isGrounded = false; }
-                    }
-                    keys[e.code] = true;
-                });
-                window.addEventListener('keyup', e => { keys[e.code] = false; });
-
-                const update = () => {
-                    const currentSpeed = phys.walk_speed * (NANO_SERVER.accountData.stuff.speedMultiplier || 1);
-
-                    if (keys['ShiftLeft'] || keys['ShiftRight']) {
-                        if (!player.isSliding && player.isGrounded) {
-                            player.isSliding = true;
-                            const dir = (keys['KeyD'] || keys['ArrowRight']) ? 1 : ((keys['KeyA'] || keys['ArrowLeft']) ? -1 : 1);
-                            player.vx = dir * phys.slide_boost;
-                        }
-                    } else player.isSliding = false;
-
-                    if (!player.isSliding) {
-                        if (keys['KeyD'] || keys['ArrowRight']) player.vx = currentSpeed;
-                        else if (keys['KeyA'] || keys['ArrowLeft']) player.vx = -currentSpeed;
-                        else player.vx *= 0.8;
-                    } else player.vx *= 0.96;
-
-                    player.x += player.vx; player.y += player.vy; player.vy += phys.gravity;
-
-                    const floorY = canvas.height - 60;
-                    if (player.y >= floorY) { player.y = floorY; player.vy = 0; player.isGrounded = true; player.sautsRestants = 2; }
-                    if (player.x < 20) player.x = 20; if (player.x > canvas.width - 20) player.x = canvas.width - 20;
-
-                    offset -= player.vx * 0.5; if (offset <= -40) offset += 40; if (offset >= 40) offset -= 40;
-
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    
-                    ctx.fillStyle = "#1a1a24"; ctx.fillRect(0, floorY + 20, canvas.width, canvas.height - floorY);
-                    ctx.strokeStyle = NANO_SERVER.accountData.color; ctx.lineWidth = 3;
-                    ctx.beginPath(); ctx.moveTo(0, floorY + 20); ctx.lineTo(canvas.width, floorY + 20); ctx.stroke();
-
-                    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; ctx.lineWidth = 2;
-                    for (let i = -1; i < 25; i++) {
-                        let lineX = (i * 40) + offset;
-                        ctx.beginPath(); ctx.moveTo(lineX + 30, floorY + 20); ctx.lineTo(lineX - 40, canvas.height); ctx.stroke();
-                    }
-
-                    ctx.save(); ctx.translate(player.x, player.y);
-                    ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.beginPath(); ctx.ellipse(0, 30, player.isSliding ? 40 : 25, 6, 0, 0, Math.PI*2); ctx.fill();
-                    ctx.shadowColor = NANO_SERVER.accountData.color; ctx.shadowBlur = player.isSliding ? 25 : 10;
-
-                    this.drawEmojiStick(
-                        ctx, NANO_SERVER.accountData.combatClass, NANO_SERVER.accountData.vehicle, 
-                        NANO_SERVER.accountData.color, NANO_SERVER.accountData.eyes, player.isSliding
-                    );
-                    ctx.restore();
-
-                    requestAnimationFrame(update);
-                };
-                update();
+            // Glissade (Shift)
+            if (keys['ShiftLeft'] || keys['ShiftRight']) {
+                isSliding = true;
+                head.position.y = 2; // Le personnage se baisse
+                body.scale.y = 0.5;
+            } else {
+                isSliding = false;
+                head.position.y = 3;
+                body.scale.y = 1;
             }
-        };
 
-        ENGINE.init();
+            // Saut
+            if (keys['Space'] && isGrounded) {
+                velocity.y = 1.2;
+                isGrounded = false;
+            }
+
+            // Appliquer la vélocité et la friction
+            velocity.x *= 0.8;
+            velocity.z *= 0.8;
+            
+            // Gravité
+            velocity.y -= gravity;
+
+            playerGroup.position.x += velocity.x;
+            playerGroup.position.y += velocity.y;
+            playerGroup.position.z += velocity.z;
+
+            // Collision avec le sol
+            if (playerGroup.position.y < 0) {
+                playerGroup.position.y = 0;
+                velocity.y = 0;
+                isGrounded = true;
+            }
+
+            // Inclinaison du personnage en fonction de la vitesse (Feedback visuel)
+            playerGroup.rotation.z = -velocity.x * 0.2;
+            playerGroup.rotation.x = velocity.z * 0.2;
+
+            // La caméra suit le joueur de manière fluide (Lerp)
+            const targetCamPos = playerGroup.position.clone().add(cameraOffset);
+            camera.position.lerp(targetCamPos, 0.1);
+            camera.lookAt(playerGroup.position);
+
+            renderer.render(scene, camera);
+        }
+
+        // Gestion du redimensionnement de l'écran
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Lancer la boucle de jeu
+        animate();
     </script>
 </body>
 </html>
+
 
