@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FFF : Fast For Fight - Character & Vehicle Creator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
+        body { background: #08090d; color: #fff; font-family: 'Impact', sans-serif; overflow: hidden; width: 100vw; height: 100vh; }
+        #game-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        
+        /* LAUNCHER STYLES (NFS / Underground 2 Inspired) */
+        .launcher-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(8, 9, 13, 0.95); display: flex; justify-content: center; align-items: center; z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+        .launcher-card {
+            background: #12131c; border: 3px solid #00f0ff; border-radius: 16px; padding: 25px; text-align: center; max-width: 450px; width: 90%;
+            box-shadow: 0 0 35px rgba(0, 240, 255, 0.3);
+        }
+        .launcher-title { color: #00f0ff; font-style: italic; font-size: 2rem; text-transform: uppercase; margin-bottom: 5px; text-shadow: 2px 2px #ff0055; }
+        .form-group { text-align: left; margin-top: 15px; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .form-group label { color: #00f0ff; font-weight: bold; font-size: 0.85rem; display: block; margin-bottom: 5px; text-transform: uppercase; }
+        .form-group select, .form-group input {
+            width: 100%; padding: 10px; background: #1a1c29; color: #fff; border: 1px solid #ff0055; border-radius: 6px; font-weight: bold;
+        }
+        .btn-start {
+            background: linear-gradient(45deg, #ff0055, #ff5500); color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; cursor: pointer;
+            font-family: 'Impact', sans-serif; font-size: 1.2rem; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.6); transition: transform 0.2s;
+        }
+        .btn-start:hover { transform: scale(1.02); }
+        .hidden { display: none !important; }
+    </style>
+    <!-- Moteur de rendu 3.5D Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <div id="game-container"></div>
+
+    <!-- LAUNCHER DE CRÉATION DE PERSONNAGE ET VÉHICULE -->
+    <div id="home-launcher" class="launcher-overlay">
+        <div class="launcher-card">
+            <h1 class="launcher-title">FFF STUDIO</h1>
+            <p style="color:#a0a0b0; font-family:'Segoe UI'; font-size:0.85rem; margin-bottom:15px;">Configuration Statique (Sans Moteur)</p>
+            
+            <div class="form-group">
+                <label>Classe Opérationnelle :</label>
+                <select id="sel-class">
+                    <option value="soldat">Soldat (Équilibré)</option>
+                    <option value="fighter">Fighter (Corps à corps)</option>
+                    <option value="ingenieur">Ingénieur (Technologique)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Véhicule Propulsé (Sans Moteur) :</label>
+                <select id="sel-vehicle">
+                    <option value="skate">Skateboard (Inertie & Pousse)</option>
+                    <option value="velo">Vélo / VTT (Pédalage Humain)</option>
+                    <option value="roller">Rollers (Glisse & Proprioception)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Couleur du Skin (Emoji / Corps) :</label>
+                <input type="color" id="sel-color" value="#ffcc00">
+            </div>
+
+            <button id="btn-start" class="btn-start">Déployer sur la Piste</button>
+        </div>
+    </div>
+
+    <!-- CONFIGURATION ARCHITECTURE COFF (Simulateur C/C++/C# Core Nodes) -->
+    <script type="text/coff" id="coff-core-config">
+        <co name="cpp_memory_nodes">
+            <stat name="max_allocation" val="1024" />
+            <stat name="pointer_safety" val="true" />
+        </co>
+        <co name="csharp_physics_engine">
+            <stat name="gravity_z" val="0.98" />
+            <stat name="friction_coefficient" val="0.85" />
+        </co>
+    </script>
+
+    <script>
+        // --- 1. PARSEUR DE CONFIGURATION COFF (Simulation C/C++/C#) ---
+        const COFF_ENGINE = {
+            config: {},
+            init() {
+                const rawCOFF = document.getElementById('coff-core-config').textContent;
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(`<coff>${rawCOFF}</coff>`, "text/xml");
+                Array.from(xmlDoc.getElementsByTagName("co")).forEach(mod => {
+                    const name = mod.getAttribute("name");
+                    this.config[name] = {};
+                    Array.from(mod.children).forEach(child => {
+                        const k = child.getAttribute("name");
+                        const v = child.getAttribute("val");
+                        this.config[name][k] = isNaN(v) ? v : parseFloat(v);
+                    });
+                });
+                console.log("[C++/C# Nano-Server] COFF Modules Loaded Successfully:", this.config);
+            }
+        };
+        COFF_ENGINE.init();
+
+        // --- 2. INITIALISATION DU MOTEUR 3.5D (Three.js) ---
+        const container = document.getElementById('game-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#08090d');
+        scene.fog = new THREE.Fog('#08090d', 15, 60);
+
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 30, 20);
+        scene.add(dirLight);
+
+        // Sol de la piste
+        const road = new THREE.Mesh(
+            new THREE.PlaneGeometry(20, 300),
+            new THREE.MeshStandardMaterial({ color: 0x12131c, roughness: 0.9, flatShading: true })
+        );
+        road.rotation.x = -Math.PI / 2;
+        scene.add(road);
+
+        const playerGroup = new THREE.Group();
+        scene.add(playerGroup);
+
+        // --- 3. MODÉLISATION DU STICKMAN 3.5D ET DU VÉHICULE SANS MOTEUR ---
+        function buildCharacterAndVehicle(combatClass, vehicleType, skinColor) {
+            // Nettoyage de la scène locale
+            while(playerGroup.children.length > 0) {
+                playerGroup.remove(playerGroup.children[0]);
+            }
+
+            const stickMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, flatShading: true });
+            const accentMat = new THREE.MeshStandardMaterial({ color: 0xff0055, roughness: 0.2, flatShading: true });
+
+            // A. Tête Emoji Lisse (3.5D)
+            const head = new THREE.Mesh(
+                new THREE.SphereGeometry(0.7, 32, 32),
+                new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.1, flatShading: true })
+            );
+            head.position.y = 3.2;
+            playerGroup.add(head);
+
+            // B. Corps Stickman (Cylindres fins / Style minimaliste structuré)
+            const spine = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 1.4, 8), stickMat);
+            spine.position.y = 2.1;
+            playerGroup.add(spine);
+
+            // Bras articulés
+            const armGeo = new THREE.CylinderGeometry(0.05, 0.05, 1.1, 8);
+            const armL = new THREE.Mesh(armGeo, stickMat);
+            armL.rotation.z = Math.PI / 4; armL.position.set(-0.4, 2.4, 0);
+            const armR = new THREE.Mesh(armGeo, stickMat);
+            armR.rotation.z = -Math.PI / 4; armR.position.set(0.4, 2.4, 0);
+            playerGroup.add(armL, armR);
+
+            // Jambes Stickman
+            const legL = new THREE.Mesh(armGeo, stickMat);
+            legL.rotation.z = -Math.PI / 6; legL.position.set(-0.25, 1.2, 0);
+            const legR = new THREE.Mesh(armGeo, stickMat);
+            legR.rotation.z = Math.PI / 6; legR.position.set(0.25, 1.2, 0);
+            playerGroup.add(legL, legR);
+
+            // C. Accessoires de Classe
+            if (combatClass === 'soldat') {
+                const helmet = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.3, 0.8), accentMat);
+                helmet.position.set(0, 3.7, 0);
+                playerGroup.add(helmet);
+            } else if (combatClass === 'fighter') {
+                const gloveL = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.25), accentMat);
+                gloveL.position.set(-0.7, 2.0, 0.3);
+                const gloveR = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.25), accentMat);
+                gloveR.position.set(0.7, 2.0, 0.3);
+                playerGroup.add(gloveL, gloveR);
+            } else if (combatClass === 'ingenieur') {
+                const gadget = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.2), new THREE.MeshStandardMaterial({color: 0x00f0ff}));
+                gadget.position.set(0, 2.1, -0.15);
+                playerGroup.add(gadget);
+            }
+
+            // D. Véhicule SANS MOTEUR (Propulsion humaine pure)
+            const vehicleGroup = new THREE.Group();
+
+            if (vehicleType === 'skate') {
+                // Skateboard (Inertie)
+                const board = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.1, 2.6), new THREE.MeshStandardMaterial({color: 0x333333}));
+                board.position.y = 0.4;
+                vehicleGroup.add(board);
+            } else if (vehicleType === 'velo') {
+                // Vélo / VTT sans moteur (Pédalage)
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.7, 2.2), new THREE.MeshStandardMaterial({color: 0x00f0ff}));
+                frame.position.y = 0.9;
+                const wheelGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.15, 12);
+                const wheelMat = new THREE.MeshStandardMaterial({color: 0x111111});
+                const wF = new THREE.Mesh(wheelGeo, wheelMat); wF.rotation.z = Math.PI/2; wF.position.set(0, 0.6, 1.1);
+                const wB = new THREE.Mesh(wheelGeo, wheelMat); wB.rotation.z = Math.PI/2; wB.position.set(0, 0.6, -1.1);
+                vehicleGroup.add(frame, wF, wB);
+            } else if (vehicleType === 'roller') {
+                // Rollers aux pieds
+                const rollerL = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.3, 0.9), new THREE.MeshStandardMaterial({color: 0xffe600}));
+                rollerL.position.set(-0.25, 0.2, 0);
+                const rollerR = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.3, 0.9), new THREE.MeshStandardMaterial({color: 0xffe600}));
+                rollerR.position.set(0.25, 0.2, 0);
+                vehicleGroup.add(rollerL, rollerR);
+            }
+
+            playerGroup.add(vehicleGroup);
+        }
+
+        // --- 4. GESTION DES INTERACTION DU LAUNCHER ---
+        document.getElementById('btn-start').addEventListener('click', () => {
+            const combatClass = document.getElementById('sel-class').value;
+            const vehicleType = document.getElementById('sel-vehicle').value;
+            const skinColor = document.getElementById('sel-color').value;
+
+            buildCharacterAndVehicle(combatClass, vehicleType, skinColor);
+            document.getElementById('home-launcher').classList.add('hidden');
+        });
+
+        // Aperçu initial au chargement
+        buildCharacterAndVehicle('soldat', 'skate', '#ffcc00');
+
+        // --- 5. BOUCLE DE RENDU 3.5D ---
+        function animate() {
+            requestAnimationFrame(animate);
+            // Position de la caméra style TPS (Third Person Stick Game)
+            camera.position.set(playerGroup.position.x, playerGroup.position.y + 3.2, playerGroup.position.z + 6.5);
+            camera.lookAt(playerGroup.position.x, playerGroup.position.y + 1.5, playerGroup.position.z);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
