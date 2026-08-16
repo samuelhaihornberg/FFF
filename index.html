@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>FFF - Fast For Fight (Launcher & 3D)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
+        body { background-color: #87CEEB; color: #fff; font-family: 'Impact', sans-serif; overflow: hidden; }
+        
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; flex-direction: column;
+            justify-content: space-between; padding: 20px; z-index: 10;
+        }
+
+        .header-hud { display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 2.5rem; color: #ff0055; text-transform: uppercase; font-style: italic; -webkit-text-stroke: 1.5px #fff; text-shadow: 3px 3px 0px #000; }
+        
+        .character-select {
+            pointer-events: auto; background: rgba(255, 255, 255, 0.9); padding: 10px;
+            border-radius: 12px; border: 3px solid #000; display: flex; gap: 10px;
+        }
+        .char-btn {
+            background: #fff; border: 2px solid #000; padding: 5px 10px; font-weight: bold;
+            cursor: pointer; border-radius: 8px; font-family: 'Impact', sans-serif; font-size: 1rem; text-transform: uppercase;
+        }
+        .char-btn.ninja { color: #ff0000; }
+        .char-btn.soldier { color: #aa8800; }
+        .char-btn.engineer { color: #0088ff; }
+        
+        #game-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+        /* STYLES DU LAUNCHER */
+        .launcher-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(8, 9, 13, 0.95); display: flex; justify-content: center;
+            align-items: center; z-index: 100; backdrop-filter: blur(8px);
+        }
+        .launcher-card {
+            background: #12131c; border: 3px solid #00f0ff; border-radius: 16px;
+            padding: 30px; text-align: center; max-width: 500px; width: 90%;
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.4);
+        }
+        .launcher-title {
+            font-family: 'Impact', sans-serif; font-size: 2.5rem; color: #00f0ff;
+            font-style: italic; text-transform: uppercase; text-shadow: 2px 2px #ff0055;
+            margin-bottom: 5px;
+        }
+        .launcher-subtitle { color: #a0a0b0; font-size: 0.9rem; margin-bottom: 25px; font-family: 'Segoe UI', sans-serif; }
+
+        .char-selector-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px;
+        }
+        .char-option {
+            background: #1a1c29; border: 2px solid #444; border-radius: 10px;
+            padding: 15px 10px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; gap: 5px;
+        }
+        .char-option:hover { border-color: #00f0ff; }
+        .char-option.active { border-color: #ff0055; background: rgba(255, 0, 85, 0.15); box-shadow: 0 0 15px rgba(255, 0, 85, 0.4); }
+        .c-title { font-family: 'Impact', sans-serif; font-size: 1.1rem; color: #fff; text-transform: uppercase; }
+        .c-veh { font-size: 0.75rem; color: #ffe600; font-family: 'Segoe UI', sans-serif; }
+
+        .btn-launch-game {
+            background: linear-gradient(45deg, #ff0055, #ff5500); color: white; border: none;
+            padding: 14px 28px; font-size: 1.3rem; font-weight: bold; border-radius: 8px;
+            cursor: pointer; width: 100%; text-transform: uppercase; font-family: 'Impact', sans-serif;
+            letter-spacing: 1px; transition: 0.2s; box-shadow: 0 0 20px rgba(255, 0, 85, 0.6);
+        }
+        .btn-launch-game:hover { transform: scale(1.02); }
+        .hidden { display: none !important; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <!-- HUD INTERFACE JEU -->
+    <div id="ui-layer">
+        <div class="header-hud">
+            <h1 class="logo">FFF : ORIGAMI</h1>
+            <div class="character-select">
+                <button class="char-btn ninja" onclick="switchCharacter('ninja')">Ninja (Rollers)</button>
+                <button class="char-btn soldier" onclick="switchCharacter('soldier')">Soldat (VTT)</button>
+                <button class="char-btn engineer" onclick="switchCharacter('engineer')">Ingé (Skate)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENEUR DU CANVAS 3D -->
+    <div id="game-container"></div>
+
+    <!-- LAUNCHER PRINCIPAL -->
+    <div id="home-launcher" class="launcher-overlay">
+        <div class="launcher-card">
+            <h1 class="launcher-title">FFF : FAST FOR FIGHT</h1>
+            <p class="launcher-subtitle">Sélectionne ton EmojiStick et entre dans l'arène</p>
+            
+            <div class="char-selector-grid">
+                <div class="char-option active" data-class="ninja" onclick="selectClass('ninja', this)">
+                    <span class="c-title">Ninja</span>
+                    <span class="c-veh">Rollers Rapides</span>
+                </div>
+                <div class="char-option" data-class="soldier" onclick="selectClass('soldier', this)">
+                    <span class="c-title">Soldat</span>
+                    <span class="c-veh">VTT Tout-Terrain</span>
+                </div>
+                <div class="char-option" data-class="engineer" onclick="selectClass('engineer', this)">
+                    <span class="c-title">Ingénieur</span>
+                    <span class="c-veh">Skateboard Turbo</span>
+                </div>
+            </div>
+
+            <button id="btn-start-game" class="btn-launch-game">Lancer la Course</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. INITIALISATION DE LA SCÈNE 3D ---
+        const container = document.getElementById('game-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#87CEEB');
+        scene.fog = new THREE.Fog('#87CEEB', 30, 150);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+        dirLight.position.set(50, 100, 30);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // --- 2. DÉCLARATION DU GROUPE JOUEUR (Correction de l'erreur log) ---
+        const playerGroup = new THREE.Group();
+        scene.add(playerGroup);
+
+        // --- 3. GÉNÉRATION 3D DES PERSONNAGES & VÉHICULES ---
+        const createNeonMat = (colorHex, emissiveHex) => new THREE.MeshStandardMaterial({
+            color: colorHex,
+            emissive: emissiveHex || 0x000000,
+            emissiveIntensity: 0.6,
+            roughness: 0.2,
+            metalness: 0.1,
+            flatShading: true
+        });
+
+        const styles = {
+            ninja: { head: 0xcc0000, body: 0x111111, vehicle: 0xff0055 },
+            soldier: { head: 0xffcc00, body: 0x556b2f, vehicle: 0x00f0ff },
+            engineer: { head: 0x0088ff, body: 0x002b80, vehicle: 0xffe600 }
+        };
+
+        function buildCharacter3D(className) {
+            // Nettoyer les anciens éléments du joueur en toute sécurité
+            while(playerGroup.children.length > 0){ 
+                playerGroup.remove(playerGroup.children[0]); 
+            }
+
+            const theme = styles[className] || styles.ninja;
+
+            // Tête Emoji 3D
+            const headGeo = new THREE.IcosahedronGeometry(1.3, 2);
+            const head = new THREE.Mesh(headGeo, createNeonMat(theme.head, theme.head));
+            head.position.y = 4.2;
+            head.castShadow = true;
+            playerGroup.add(head);
+
+            // Corps Stickman
+            const bodyGeo = new THREE.CylinderGeometry(0.35, 0.35, 2.8, 8);
+            const body = new THREE.Mesh(bodyGeo, createNeonMat(theme.body, 0x111111));
+            body.position.y = 2.2;
+            body.castShadow = true;
+            playerGroup.add(body);
+
+            // Véhicules 3D
+            const vehGroup = new THREE.Group();
+
+            if (className === 'engineer') {
+                const board = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.2, 3.8), createNeonMat(0x12131c, theme.vehicle));
+                board.position.y = 0.3;
+                board.castShadow = true;
+                vehGroup.add(board);
+            } else if (className === 'soldier') {
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.2, 3.2), createNeonMat(theme.vehicle, 0x004455));
+                frame.position.y = 1.2;
+                const wheelGeo = new THREE.CylinderGeometry(0.9, 0.9, 0.3, 12);
+                const wheelMat = createNeonMat(0x111111, 0x000000);
+                
+                const wheelF = new THREE.Mesh(wheelGeo, wheelMat);
+                wheelF.rotation.z = Math.PI / 2; wheelF.position.set(0, 0.9, 1.6);
+                
+                const wheelB = new THREE.Mesh(wheelGeo, wheelMat);
+                wheelB.rotation.z = Math.PI / 2; wheelB.position.set(0, 0.9, -1.6);
+                
+                vehGroup.add(frame, wheelF, wheelB);
+            } else {
+                const rollerGeo = new THREE.BoxGeometry(0.6, 0.7, 1.4);
+                const rollerMat = createNeonMat(theme.vehicle, theme.vehicle);
+                const rLeft = new THREE.Mesh(rollerGeo, rollerMat); rLeft.position.set(-0.5, 0.5, 0);
+                const rRight = new THREE.Mesh(rollerGeo, rollerMat); rRight.position.set(0.5, 0.5, 0);
+                vehGroup.add(rLeft, rRight);
+            }
+
+            playerGroup.add(vehGroup);
+        }
+
+        // --- 4. GESTION DU LAUNCHER ET INTERactivité ---
+        let selectedClass = 'ninja';
+
+        function selectClass(className, element) {
+            selectedClass = className;
+            document.querySelectorAll('.char-option').forEach(opt => opt.classList.remove('active'));
+            element.classList.add('active');
+            buildCharacter3D(selectedClass); // Met à jour le perso en temps réel
+        }
+
+        function switchCharacter(className) {
+            buildCharacter3D(className);
+        }
+
+        document.getElementById('btn-start-game').addEventListener('click', () => {
+            buildCharacter3D(selectedClass);
+            document.getElementById('home-launcher').classList.add('hidden');
+        });
+
+        // Initialisation par défaut du personnage au chargement
+        buildCharacter3D('ninja');
+
+        // Boucle de rendu simple pour afficher la scène 3D
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
+
