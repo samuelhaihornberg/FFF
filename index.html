@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FFF - Fast For Fight (Fix Caméra TPS)</title>
+    <title>FFF - Fast For Fight (Fix Complet)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
         body { background-color: #87CEEB; color: #fff; font-family: 'Impact', sans-serif; overflow: hidden; width: 100vw; height: 100vh; }
@@ -121,8 +121,7 @@
         scene.background = new THREE.Color('#87CEEB');
         scene.fog = new THREE.Fog('#87CEEB', 20, 100);
 
-        // Caméra avec un champ de vision large (FOV 75) pour bien voir la scène entière
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
         
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -149,6 +148,19 @@
         const playerGroup = new THREE.Group();
         scene.add(playerGroup);
         playerGroup.position.set(0, 0, 0);
+
+        // --- 4. CONFIGURATION DES STYLES & MATÉRIAUX ---
+        const createNeonMat = (colorHex) => new THREE.MeshStandardMaterial({
+            color: colorHex, roughness: 0.3, metalness: 0.1, flatShading: true
+        });
+
+        const styles = {
+            ninja: { head: 0xcc0000, body: 0x111111, vehicle: 0xff0055 },
+            soldier: { head: 0xffcc00, body: 0x556b2f, vehicle: 0x00f0ff },
+            engineer: { head: 0x0088ff, body: 0x002b80, vehicle: 0xffe600 }
+        };
+
+        // --- 5. GÉNÉRATION 3D DU STICKMAN STYLISÉ ---
         function buildCharacter3D(className) {
             while(playerGroup.children.length > 0){ 
                 playerGroup.remove(playerGroup.children[0]); 
@@ -156,7 +168,7 @@
 
             const theme = styles[className] || styles.ninja;
 
-            // 1. Tête Emoji (Sphère lisse style dessin animé)
+            // Tête Emoji Lisse
             const headGeo = new THREE.SphereGeometry(0.9, 32, 32);
             const headMat = new THREE.MeshStandardMaterial({ color: theme.head, roughness: 0.2, metalness: 0.1 });
             const head = new THREE.Mesh(headGeo, headMat);
@@ -164,9 +176,8 @@
             head.castShadow = true;
             playerGroup.add(head);
 
-            // 2. Visage / Lunettes ou expression selon la classe
+            // Lunettes pour l'ingénieur
             if (className === 'engineer') {
-                // Lunettes de soleil cool sur l'emoji
                 const glassesGeo = new THREE.BoxGeometry(1.1, 0.3, 0.4);
                 const glassesMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
                 const glasses = new THREE.Mesh(glassesGeo, glassesMat);
@@ -174,7 +185,7 @@
                 playerGroup.add(glasses);
             }
 
-            // 3. Corps Stickman (Bâton fin et rigide)
+            // Corps Stickman Fin
             const bodyGeo = new THREE.CylinderGeometry(0.12, 0.12, 1.8, 8);
             const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
             const body = new THREE.Mesh(bodyGeo, bodyMat);
@@ -182,11 +193,10 @@
             body.castShadow = true;
             playerGroup.add(body);
 
-            // 4. Bras et Jambes (Style Stick)
+            // Bras Stick
             const limbGeo = new THREE.CylinderGeometry(0.09, 0.09, 1.4, 8);
             const limbMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
 
-            // Bras gauche / droit
             const armL = new THREE.Mesh(limbGeo, limbMat);
             armL.rotation.z = Math.PI / 4;
             armL.position.set(-0.6, 2.2, 0);
@@ -197,20 +207,17 @@
             armR.position.set(0.6, 2.2, 0);
             playerGroup.add(armR);
 
-            // 5. Véhicule 3D proportionné
+            // Véhicule 3D
             const vehGroup = new THREE.Group();
             if (className === 'engineer') {
-                // Skateboard
                 const board = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.15, 3.0), createNeonMat(theme.vehicle));
                 board.position.y = 0.3;
                 vehGroup.add(board);
             } else if (className === 'soldier') {
-                // VTT
                 const frame = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.8, 2.5), createNeonMat(theme.vehicle));
                 frame.position.y = 0.8;
                 vehGroup.add(frame);
             } else {
-                // Rollers
                 const rollerL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 1.0), createNeonMat(theme.vehicle));
                 rollerL.position.set(-0.4, 0.2, 0);
                 const rollerR = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 1.0), createNeonMat(theme.vehicle));
@@ -219,27 +226,8 @@
             }
             playerGroup.add(vehGroup);
         }
-);
 
-            // Véhicule
-            const vehGroup = new THREE.Group();
-            if (className === 'engineer') {
-                const board = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.2, 3.2), createNeonMat(theme.vehicle));
-                board.position.y = 0.2;
-                vehGroup.add(board);
-            } else if (className === 'soldier') {
-                const frame = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1, 2.8), createNeonMat(theme.vehicle));
-                frame.position.y = 1;
-                vehGroup.add(frame);
-            } else {
-                const roller = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 1.2), createNeonMat(theme.vehicle));
-                roller.position.set(0, 0.4, 0);
-                vehGroup.add(roller);
-            }
-            playerGroup.add(vehGroup);
-        }
-
-        // --- 5. GESTION LAUNCHER ---
+        // --- 6. GESTION DU LAUNCHER ---
         let selectedClass = 'ninja';
 
         function selectClass(className, element) {
@@ -260,17 +248,16 @@
 
         buildCharacter3D('ninja');
 
-        // --- 6. BOUCLE DE RENDU ET POSITIONNEMENT CAMÉRA TPS ---
+        // --- 7. BOUCLE DE RENDU & CAMÉRA TPS ---
         function animate() {
             requestAnimationFrame(animate);
 
-            // Position fixe de la caméra en mode Third Person (derrière et légèrement au-dessus du joueur)
+            // Caméra placée derrière et au-dessus pour voir parfaitement le personnage en entier
             camera.position.x = playerGroup.position.x;
-            camera.position.y = playerGroup.position.y + 4; // Hauteur de vue
-            camera.position.z = playerGroup.position.z + 9; // Distance de recul (anti-zoom)
+            camera.position.y = playerGroup.position.y + 3.5;
+            camera.position.z = playerGroup.position.z + 7;
 
-            // Faire regarder la caméra directement sur le joueur
-            camera.lookAt(playerGroup.position.x, playerGroup.position.y + 2, playerGroup.position.z);
+            camera.lookAt(playerGroup.position.x, playerGroup.position.y + 1.5, playerGroup.position.z);
 
             renderer.render(scene, camera);
         }
@@ -285,5 +272,6 @@
     </script>
 </body>
 </html>
+
 
 
