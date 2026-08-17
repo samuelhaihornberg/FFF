@@ -47,11 +47,18 @@
 
     .btn-launch { background: linear-gradient(90deg, #ff0055, #ffaa00); border: none; color: #fff; padding: 14px; border-radius: 4px; font-weight: bold; font-size: 1.2rem; cursor: pointer; margin-top: auto; text-transform: uppercase; font-style: italic; box-shadow: 0 0 20px rgba(255,0,85,0.6); }
     .btn-launch:hover { filter: brightness(1.2); }
+#selection-box {
+    position: absolute;
+    pointer-events: none; /* Important : permet de cliquer à travers */
+}
   </style>
 </head>
 <body>
 
   <div id="viewport-3d">
+    <!-- Couche invisible pour dessiner le rectangle -->
+<div id="selection-box" style="position: absolute; border: 2px solid #00e5ff; background: rgba(0, 229, 255, 0.2); display: none; z-index: 100;"></div>
+
     <div id="hud-overlay">
       <img id="logo" src="https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/images%20%26%20videos/1786846892107.png" alt="FFF Logo">
       <div class="badge" id="mode-badge">Launcher User</div>
@@ -587,6 +594,63 @@
     });
 
     window.onload = init3D;
+
+    let isSelecting = false;
+let startX, startY;
+const selectionBox = document.getElementById('selection-box');
+
+// Activer le mode sélection avec la touche 'S' ou via une logique de ton choix
+// Pour l'instant, on détecte le mousedown sur le viewport
+document.getElementById('viewport-3d').addEventListener('mousedown', (e) => {
+    isSelecting = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    selectionBox.style.left = startX + 'px';
+    selectionBox.style.top = startY + 'px';
+    selectionBox.style.width = '0px';
+    selectionBox.style.height = '0px';
+    selectionBox.style.display = 'block';
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (!isSelecting) return;
+    const currentX = e.clientX;
+    const currentY = e.clientY;
+    selectionBox.style.width = Math.abs(currentX - startX) + 'px';
+    selectionBox.style.height = Math.abs(currentY - startY) + 'px';
+    selectionBox.style.left = Math.min(currentX, startX) + 'px';
+    selectionBox.style.top = Math.min(currentY, startY) + 'px';
+});
+
+document.addEventListener('mouseup', (e) => {
+    if (!isSelecting) return;
+    isSelecting = false;
+    selectionBox.style.display = 'none';
+    
+    // Déterminer la zone du rectangle
+    const rect = {
+        left: parseInt(selectionBox.style.left),
+        top: parseInt(selectionBox.style.top),
+        right: parseInt(selectionBox.style.left) + parseInt(selectionBox.style.width),
+        bottom: parseInt(selectionBox.style.top) + parseInt(selectionBox.style.height)
+    };
+
+    // Vérifier quel "bone" est dans cette zone
+    for (let boneKey in detectedBones) {
+        const bone = detectedBones[boneKey];
+        // Projeter la position 3D en 2D (écran)
+        const vector = bone.getWorldPosition(new THREE.Vector3()).project(camera);
+        const x = (vector.x + 1) / 2 * window.innerWidth;
+        const y = -(vector.y - 1) / 2 * window.innerHeight;
+
+        if (x > rect.left && x < rect.right && y > rect.top && y < rect.bottom) {
+            document.getElementById('bone-target').value = boneKey;
+            updateBoneUI();
+            break; // On sélectionne le premier trouvé
+        }
+    }
+});
+
   </script>
 </body>
 </html>
