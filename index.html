@@ -77,21 +77,20 @@
     </div>
 
     <!-- Section Création -->
-
-<!-- Bloc Preview Recapitulatif -->
-<div id="character-preview-card" style="background: rgba(0, 229, 255, 0.08); border: 1px dashed #00e5ff; padding: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
-  <div style="display: flex; justify-content: space-between; align-items: center;">
-    <span id="preview-emoji-display" style="font-size: 1.5rem;">😎</span>
-    <span id="preview-name-display" style="font-weight: bold; color: #00e5ff;">Rider_01</span>
-  </div>
-  <div style="font-size: 0.8rem; color: #aaa; font-family: sans-serif;">
-    <p>🏎️ Véhicule: <strong id="preview-vehicle-text" style="color: #fff;">Velo</strong></p>
-    <p>⚔️ Classe: <strong id="preview-class-text" style="color: #fff;">Fighter</strong></p>
-  </div>
-</div>
-
-    
     <div id="section-create" style="display: flex; flex-direction: column; gap: 12px;">
+      
+      <!-- Bloc Preview Récapitulatif -->
+      <div id="character-preview-card" style="background: rgba(0, 229, 255, 0.08); border: 1px dashed #00e5ff; padding: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span id="preview-emoji-display" style="font-size: 1.5rem;">😎</span>
+          <span id="preview-name-display" style="font-weight: bold; color: #00e5ff;">Rider_01</span>
+        </div>
+        <div style="font-size: 0.8rem; color: #aaa; font-family: sans-serif;">
+          <p>🏎️ Véhicule: <strong id="preview-vehicle-text" style="color: #fff;">Velo</strong></p>
+          <p>⚔️ Classe: <strong id="preview-class-text" style="color: #fff;">Fighter</strong></p>
+        </div>
+      </div>
+
       <div class="control-group">
         <label>Nom du Personnage</label>
         <input type="text" id="char-name" value="Rider_01">
@@ -166,47 +165,40 @@
       }
     };
 
-    // Offsets magnétiques (encochement / magnétisme des objets)
-    
+    // Configuration des échelles et positions magnétiques
+    const sockets = {
       vehicles: {
-  // Offsets magnétiques et échelles ajustées
-const sockets = {
-  vehicles: {
-    Velo: { 
-      pos: [0, 0, 0], 
-      scale: [0.5, 0.5, 0.5], 
-      charOffset: [0, 0.45, -0.05] 
-    },
-    Rollers: { 
-      pos: [0, 0, 0], 
-      scale: [0.15, 0.15, 0.15], // Réduction drastique des rollers
-      charOffset: [0, 0.08, 0] 
-    },
-    Skateboard: { 
-      pos: [0, 0, 0], 
-      scale: [0.4, 0.4, 0.4], 
-      charOffset: [0, 0.18, 0] 
-    }
-  },
-  stuff: {
-    Fighter: { 
-      pos: [0, 0.4, 0], 
-      scale: [0.25, 0.25, 0.25], 
-      parentTo: 'character' 
-    },
-    Soldat: { 
-      pos: [0.18, 0.5, 0.15], // Calé au niveau de la main du Stickman
-      scale: [0.12, 0.12, 0.12], // Réduction du revolver
-      parentTo: 'character' 
-    },
-    Ingenieur: { 
-      pos: [0, 0.65, -0.1], 
-      scale: [0.2, 0.2, 0.2], 
-      parentTo: 'character' 
-    }
-  }
-};
-
+        Velo: { 
+          pos: [0, 0, 0], 
+          scale: [0.5, 0.5, 0.5], 
+          charOffset: [0, 0.45, -0.05] 
+        },
+        Rollers: { 
+          pos: [0, 0, 0], 
+          scale: [0.15, 0.15, 0.15], 
+          charOffset: [0, 0.08, 0] 
+        },
+        Skateboard: { 
+          pos: [0, 0, 0], 
+          scale: [0.4, 0.4, 0.4], 
+          charOffset: [0, 0.18, 0] 
+        }
+      },
+      stuff: {
+        Fighter: { 
+          pos: [0, 0.4, 0], 
+          scale: [0.25, 0.25, 0.25] 
+        },
+        Soldat: { 
+          pos: [0.18, 0.5, 0.15], 
+          scale: [0.12, 0.12, 0.12] 
+        },
+        Ingenieur: { 
+          pos: [0, 0.65, -0.1], 
+          scale: [0.2, 0.2, 0.2] 
+        }
+      }
+    };
 
     let scene, camera, renderer, controls, loader;
     let characterGroup, currentVehicleMesh, currentStuffMesh;
@@ -243,46 +235,8 @@ const sockets = {
 
       loader = new THREE.GLTFLoader();
 
-      // Groupe racine pour la hiérarchie magnétique
-      characterGroup = new THREE.Group();
-      scene.add(characterGroup);
-
-      function loadAll(vehicleType, classType) {
-  const vConfig = sockets.vehicles[vehicleType];
-  const sConfig = sockets.stuff[classType];
-
-  // 1. Charger et redimensionner le Véhicule
-  loader.load(coffRegistry.vehicles[vehicleType], (gltfVehicle) => {
-    if (currentVehicleMesh) scene.remove(currentVehicleMesh);
-    currentVehicleMesh = gltfVehicle.scene;
-    currentVehicleMesh.scale.set(...vConfig.scale);
-    applyMeshColor(currentVehicleMesh, document.getElementById('color-vehicle').value);
-    scene.add(currentVehicleMesh);
-
-    // 2. Encochement du Stickman sur le Véhicule
-    loader.load(coffRegistry.character, (gltfChar) => {
-      if (characterGroup) scene.remove(characterGroup);
-      characterGroup = gltfChar.scene;
-      
-      const vOffset = vConfig.charOffset;
-      characterGroup.position.set(vOffset[0], vOffset[1], vOffset[2]);
-      applyMeshColor(characterGroup, document.getElementById('color-stickman').value);
-      scene.add(characterGroup);
-
-      // 3. Encochement et échelle du Stuff sur le Stickman
-      loader.load(coffRegistry.stuff[classType], (gltfStuff) => {
-        if (currentStuffMesh) characterGroup.remove(currentStuffMesh);
-        currentStuffMesh = gltfStuff.scene;
-        
-        currentStuffMesh.scale.set(...sConfig.scale);
-        currentStuffMesh.position.set(...sConfig.pos);
-        applyMeshColor(currentStuffMesh, document.getElementById('color-stuff').value);
-        characterGroup.add(currentStuffMesh);
-      });
-    });
-  });
-}
-
+      loadAll('Velo', 'Fighter');
+      animate();
     }
 
     function applyMeshColor(model, colorHex) {
@@ -295,93 +249,59 @@ const sockets = {
       });
     }
 
-    // Chargement magnétisé imbriqué
+    // Chargement magnétisé imbriqué avec échelle
     function loadAll(vehicleType, classType) {
-      // 1. Charger Véhicule au sol
+      const vConfig = sockets.vehicles[vehicleType];
+      const sConfig = sockets.stuff[classType];
+
+      // 1. Charger et redimensionner le Véhicule
       loader.load(coffRegistry.vehicles[vehicleType], (gltfVehicle) => {
         if (currentVehicleMesh) scene.remove(currentVehicleMesh);
         currentVehicleMesh = gltfVehicle.scene;
+        currentVehicleMesh.scale.set(...vConfig.scale);
         applyMeshColor(currentVehicleMesh, document.getElementById('color-vehicle').value);
         scene.add(currentVehicleMesh);
 
-        // Offsets magnétiques et échelles ajustées
-const sockets = {
-  vehicles: {
-    Velo: { 
-      pos: [0, 0, 0], 
-      scale: [0.5, 0.5, 0.5], 
-      charOffset: [0, 0.45, -0.05] 
-    },
-    Rollers: { 
-      pos: [0, 0, 0], 
-      scale: [0.15, 0.15, 0.15], 
-      charOffset: [0, 0.08, 0] 
-    },
-    Skateboard: { 
-      pos: [0, 0, 0], 
-      scale: [0.4, 0.4, 0.4], 
-      charOffset: [0, 0.18, 0] 
-    }
-  },
-  stuff: {
-    Fighter: { 
-      pos: [0, 0.4, 0], 
-      scale: [0.25, 0.25, 0.25], 
-      parentTo: 'character' 
-    },
-    Soldat: { 
-      pos: [0.18, 0.5, 0.15], 
-      scale: [0.12, 0.12, 0.12], 
-      parentTo: 'character' 
-    },
-    Ingenieur: { 
-      pos: [0, 0.65, -0.1], 
-      scale: [0.2, 0.2, 0.2], 
-      parentTo: 'character' 
-    }
-  }
-};
+        // 2. Encochement du Stickman sur le Véhicule
+        loader.load(coffRegistry.character, (gltfChar) => {
+          if (characterGroup) scene.remove(characterGroup);
+          characterGroup = gltfChar.scene;
+          
+          const vOffset = vConfig.charOffset;
+          characterGroup.position.set(vOffset[0], vOffset[1], vOffset[2]);
+          applyMeshColor(characterGroup, document.getElementById('color-stickman').value);
+          scene.add(characterGroup);
 
-// Chargement magnétisé imbriqué avec échelle
-function loadAll(vehicleType, classType) {
-  const vConfig = sockets.vehicles[vehicleType];
-  const sConfig = sockets.stuff[classType];
-
-  // 1. Charger et redimensionner le Véhicule
-  loader.load(coffRegistry.vehicles[vehicleType], (gltfVehicle) => {
-    if (currentVehicleMesh) scene.remove(currentVehicleMesh);
-    currentVehicleMesh = gltfVehicle.scene;
-    currentVehicleMesh.scale.set(...vConfig.scale);
-    applyMeshColor(currentVehicleMesh, document.getElementById('color-vehicle').value);
-    scene.add(currentVehicleMesh);
-
-    // 2. Encochement du Stickman sur le Véhicule
-    loader.load(coffRegistry.character, (gltfChar) => {
-      if (characterGroup) scene.remove(characterGroup);
-      characterGroup = gltfChar.scene;
-      
-      const vOffset = vConfig.charOffset;
-      characterGroup.position.set(vOffset[0], vOffset[1], vOffset[2]);
-      applyMeshColor(characterGroup, document.getElementById('color-stickman').value);
-      scene.add(characterGroup);
-
-      // 3. Encochement et échelle du Stuff sur le Stickman
-      loader.load(coffRegistry.stuff[classType], (gltfStuff) => {
-        if (currentStuffMesh) characterGroup.remove(currentStuffMesh);
-        currentStuffMesh = gltfStuff.scene;
-        
-        currentStuffMesh.scale.set(...sConfig.scale);
-        currentStuffMesh.position.set(...sConfig.pos);
-        applyMeshColor(currentStuffMesh, document.getElementById('color-stuff').value);
-        characterGroup.add(currentStuffMesh);
+          // 3. Encochement et échelle du Stuff sur le Stickman
+          loader.load(coffRegistry.stuff[classType], (gltfStuff) => {
+            if (currentStuffMesh) characterGroup.remove(currentStuffMesh);
+            currentStuffMesh = gltfStuff.scene;
+            
+            currentStuffMesh.scale.set(...sConfig.scale);
+            currentStuffMesh.position.set(...sConfig.pos);
+            applyMeshColor(currentStuffMesh, document.getElementById('color-stuff').value);
+            characterGroup.add(currentStuffMesh);
+          });
+        });
       });
-    });
-  });
-}
-
     }
 
-    // Gestion Interface & Sauvegarde
+    // Mise à jour simultanée de la carte récapitulative et de la scène 3D
+    function update3DPreview() {
+      const name = document.getElementById('char-name').value || 'Rider';
+      const emoji = document.getElementById('emoji-input').value || '😎';
+      const vehicle = document.getElementById('vehicle-select').value;
+      const classType = document.getElementById('class-select').value;
+
+      document.getElementById('preview-name-display').innerText = name;
+      document.getElementById('preview-emoji-display').innerText = emoji;
+      document.getElementById('preview-vehicle-text').innerText = vehicle;
+      document.getElementById('preview-class-text').innerText = classType;
+
+      loadAll(vehicle, classType);
+    }
+
+    // Navigation Onglets
     function switchMode(mode) {
       document.getElementById('tab-create').classList.toggle('active', mode === 'create');
       document.getElementById('tab-select').classList.toggle('active', mode === 'select');
@@ -389,6 +309,7 @@ function loadAll(vehicleType, classType) {
       document.getElementById('section-select').style.display = mode === 'select' ? 'flex' : 'none';
     }
 
+    // Sauvegarde & Chargement
     function saveCharacter() {
       const name = document.getElementById('char-name').value;
       savedCharacters[name] = {
@@ -418,15 +339,18 @@ function loadAll(vehicleType, classType) {
       document.getElementById('class-select').value = data.classType;
       document.getElementById('color-stuff').value = data.colorStuff;
 
-      loadAll(data.vehicle, data.classType);
+      update3DPreview();
     }
 
-    // Listeners Dynamiques
+    // Écouteurs d'événements
     document.getElementById('color-stickman').addEventListener('input', (e) => applyMeshColor(characterGroup, e.target.value));
     document.getElementById('color-vehicle').addEventListener('input', (e) => applyMeshColor(currentVehicleMesh, e.target.value));
     document.getElementById('color-stuff').addEventListener('input', (e) => applyMeshColor(currentStuffMesh, e.target.value));
-    document.getElementById('vehicle-select').addEventListener('change', (e) => loadAll(e.target.value, document.getElementById('class-select').value));
-    document.getElementById('class-select').addEventListener('change', (e) => loadAll(document.getElementById('vehicle-select').value, e.target.value));
+
+    document.getElementById('char-name').addEventListener('input', update3DPreview);
+    document.getElementById('emoji-input').addEventListener('input', update3DPreview);
+    document.getElementById('vehicle-select').addEventListener('change', update3DPreview);
+    document.getElementById('class-select').addEventListener('change', update3DPreview);
 
     function animate() {
       requestAnimationFrame(animate);
@@ -442,30 +366,9 @@ function loadAll(vehicleType, classType) {
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
     });
-// Fonction d'actualisation de la preview UI & 3D
-function update3DPreview() {
-  const name = document.getElementById('char-name').value || 'Rider';
-  const emoji = document.getElementById('emoji-input').value || '😎';
-  const vehicle = document.getElementById('vehicle-select').value;
-  const classType = document.getElementById('class-select').value;
-
-  // Mise à jour du récapitulatif visuel dans le panneau
-  document.getElementById('preview-name-display').innerText = name;
-  document.getElementById('preview-emoji-display').innerText = emoji;
-  document.getElementById('preview-vehicle-text').innerText = vehicle;
-  document.getElementById('preview-class-text').innerText = classType;
-
-  // Rechargement et ré-alignement magnétique du modèle 3D
-  loadAll(vehicle, classType);
-}
-
-// Écouteurs d'événements pour mise à jour instantanée en direct
-document.getElementById('char-name').addEventListener('input', update3DPreview);
-document.getElementById('emoji-input').addEventListener('input', update3DPreview);
-document.getElementById('vehicle-select').addEventListener('change', update3DPreview);
-document.getElementById('class-select').addEventListener('change', update3DPreview);
 
     window.onload = init3D;
   </script>
 </body>
 </html>
+
