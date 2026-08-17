@@ -1,377 +1,251 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Launcher - Personnalisation 3D Stickman (Coff Engine)</title>
-    <!-- Three.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FFF - Launcher Garage</title>
+  
+  <!-- Libs 3D -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-        body {
-            background-color: #0b0f19;
-            color: #f0f6fc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #0d0f12; color: #fff; display: flex; height: 100vh; overflow: hidden; }
+    
+    /* Zone 3D */
+    #viewport { flex: 1; height: 100%; position: relative; }
+    #canvas3d { width: 100%; height: 100%; display: block; }
 
-        .launcher-container {
-            width: 100%;
-            max-width: 1100px;
-            background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
-            border: 2px solid #30363d;
-            border-radius: 16px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-            padding: 25px;
-        }
+    /* HUD & Logo */
+    #logo { position: absolute; top: 15px; left: 15px; height: 60px; filter: drop-shadow(0 0 8px rgba(0,229,255,0.5)); }
 
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #30363d;
-            padding-bottom: 10px;
-        }
+    /* Panneau d'option / Garage */
+    #garage-panel { width: 340px; background: rgba(18, 22, 28, 0.95); border-left: 2px solid #00e5ff; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+    h2 { color: #00e5ff; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 5px; }
 
-        header h1 {
-            font-size: 1.8rem;
-            color: #58a6ff;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+    .group { display: flex; flex-direction: column; gap: 8px; }
+    label { font-size: 0.85rem; color: #aaa; font-weight: bold; }
+    select, input[type="text"], input[type="color"] { background: #1a202c; border: 1px solid #303e4d; color: #fff; padding: 8px; border-radius: 6px; width: 100%; outline: none; }
+    input[type="color"] { height: 40px; cursor: pointer; padding: 2px; }
 
-        .main-layout {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 850px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .panel {
-            background: #21262d;
-            border: 1px solid #30363d;
-            border-radius: 10px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .panel h2 {
-            font-size: 1rem;
-            color: #7ee787;
-            text-transform: uppercase;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        label {
-            font-size: 0.8rem;
-            color: #c9d1d9;
-        }
-
-        select, input[type="color"] {
-            width: 100%;
-            padding: 8px;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            color: #fff;
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-
-        input[type="color"] {
-            height: 38px;
-            cursor: pointer;
-            padding: 2px;
-        }
-
-        .viewport-3d-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        #canvas3d {
-            width: 100%;
-            height: 350px;
-            background: #010409;
-            border: 1px solid #30363d;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .coff-code-display {
-            background: #010409;
-            color: #ff7b72;
-            padding: 12px;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 0.8rem;
-            white-space: pre-wrap;
-            border: 1px solid #30363d;
-        }
-
-        .btn-launch {
-            width: 100%;
-            background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
-            color: white;
-            border: none;
-            padding: 14px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 15px;
-        }
-
-        .btn-launch:hover {
-            opacity: 0.9;
-        }
-    </style>
+    .btn-launch { background: linear-gradient(45deg, #00e5ff, #0077ff); border: none; color: #fff; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: auto; text-transform: uppercase; box-shadow: 0 0 12px rgba(0,229,255,0.4); }
+    .btn-launch:hover { transform: translateY(-2px); box-shadow: 0 0 18px rgba(0,229,255,0.7); }
+  </style>
 </head>
 <body>
 
-    <div class="launcher-container">
-        <header>
-            <h1>Coff Engine // Studio Emojistick 3D</h1>
-        </header>
+  <!-- Structure de Données COFF Imbriquée -->
+  <CoffSetup id="coff-data">
+    <CharacterSetup>
+      <Visual_Avatar>
+        <Color_Stickman>#00ffff</Color_Stickman>
+        <Head_Emoji>😎</Head_Emoji>
+      </Visual_Avatar>
+      <Vehicle>
+        <Type>Velo</Type>
+        <Color_Vehicle>#ff0055</Color_Vehicle>
+      </Vehicle>
+      <Class_Rules>
+        <Class_Selected>Fighter</Class_Selected>
+        <Color_Stuff>#ffaa00</Color_Stuff>
+      </Class_Rules>
+    </CharacterSetup>
 
-        <div class="main-layout">
-            <!-- Panneau Options -->
-            <div class="panel">
-                <h2>⚙️ Configuration</h2>
-                
-                <div class="form-group">
-                    <label for="stickColor">Couleur du Stickman</label>
-                    <input type="color" id="stickColor" value="#00ffff" onchange="updateCharacter()">
-                </div>
+    <Asset_Registry>
+      <Logo_URL>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/images%20%26%20videos/1786846892107.png</Logo_URL>
+      <Model_Stickman>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Personnages/Model%20emojistick.glb</Model_Stickman>
+      <Vehicles>
+        <Rollers>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Rollers%20basic.glb</Rollers>
+        <Velo>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Velo%20basic.glb</Velo>
+        <Skateboard>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Skateboard%20basic.glb</Skateboard>
+      </Vehicles>
+      <Stuff>
+        <Fighter>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/gant%20choose.glb</Fighter>
+        <Soldat>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/Revolver.glb</Soldat>
+        <Ingenieur>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/Chaine%20electrique.glb</Ingenieur>
+      </Stuff>
+    </Asset_Registry>
+  </CoffSetup>
 
-                <div class="form-group">
-                    <label for="emojiChoice">Emoji Signature</label>
-                    <select id="emojiChoice" onchange="updateCharacter()">
-                        <option value="🔥">🔥 Feu</option>
-                        <option value="⚡">⚡ Éclair</option>
-                        <option value="💀">💀 Skull</option>
-                        <option value="👑">👑 Couronne</option>
-                        <option value="🎯">🎯 Cible</option>
-                        <option value="😎">😎 Cool</option>
-                    </select>
-                </div>
+  <!-- Rendu 3D Viewport -->
+  <div id="viewport">
+    <img id="logo" src="https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/images%20%26%20videos/1786846892107.png" alt="FFF Logo">
+    <canvas id="canvas3d"></canvas>
+  </div>
 
-                <div class="form-group">
-                    <label for="vehicle">Choix du Véhicule</label>
-                    <select id="vehicle" onchange="updateCharacter()">
-                        <option value="Roller">🛼 Roller (Vitesse)</option>
-                        <option value="VTT">🚲 VTT (Obstacles)</option>
-                        <option value="Skateboard">🛹 Skateboard (Tricks)</option>
-                    </select>
-                </div>
+  <!-- Interface du Garage -->
+  <div id="garage-panel">
+    <h2>Garage & Custom</h2>
 
-                <div class="form-group">
-                    <label for="playerClass">Classe de Combat</label>
-                    <select id="playerClass" onchange="updateCharacter()">
-                        <option value="Soldat">🎖️ Soldat</option>
-                        <option value="Ingenieur">🛠️ Ingénieur</option>
-                        <option value="Fighter">🥊 Fighter</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Rendu 3D & Code Coff Séquencé -->
-            <div class="viewport-3d-container">
-                <div id="canvas3d"></div>
-                <div class="coff-code-display" id="coffCodeOutput"></div>
-            </div>
-        </div>
-
-        <button class="btn-launch" onclick="launchGame()">Lancer l'Ascension (Ginode Server)</button>
+    <div class="group">
+      <label>Couleur du Stickman</label>
+      <input type="color" id="color-stickman" value="#00ffff">
     </div>
 
-    <script>
-        let scene, camera, renderer, stickmanGroup, headMesh, vehicleMesh, emojiSprite;
+    <div class="group">
+      <label>Tête (Emoji)</label>
+      <input type="text" id="emoji-input" value="😎" maxlength="2">
+    </div>
 
-        function init3D() {
-            const container = document.getElementById('canvas3d');
-            
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0d1117);
+    <div class="group">
+      <label>Véhicule</label>
+      <select id="vehicle-select">
+        <option value="Velo">Vélo Basic</option>
+        <option value="Rollers">Rollers Basic</option>
+        <option value="Skateboard">Skateboard Basic</option>
+      </select>
+    </div>
 
-            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.set(0, 3, 7);
-            camera.lookAt(0, 1.5, 0);
+    <div class="group">
+      <label>Couleur du Véhicule</label>
+      <input type="color" id="color-vehicle" value="#ff0055">
+    </div>
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            container.appendChild(renderer.domElement);
+    <div class="group">
+      <label>Classe & Équipement</label>
+      <select id="class-select">
+        <option value="Fighter">Fighter (Gants & Chaussures)</option>
+        <option value="Soldat">Soldat (Revolver)</option>
+        <option value="Ingenieur">Ingénieur (Chaîne Électrique)</option>
+      </select>
+    </div>
 
-            const light = new THREE.DirectionalLight(0xffffff, 1);
-            light.position.set(5, 10, 7).normalize();
-            scene.add(light);
-            scene.add(new THREE.AmbientLight(0x404040, 1.5));
+    <div class="group">
+      <label>Couleur du Stuff</label>
+      <input type="color" id="color-stuff" value="#ffaa00">
+    </div>
 
-            const grid = new THREE.GridHelper(10, 10, 0x30363d, 0x21262d);
-            scene.add(grid);
+    <button class="btn-launch" onclick="launchGame()">Lancer la Course</button>
+  </div>
 
-            stickmanGroup = new THREE.Group();
-            scene.add(stickmanGroup);
+  <script>
+    // System Engine Three.js & Coff Parsing
+    const coffRegistry = {
+      character: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Personnages/Model%20emojistick.glb',
+      vehicles: {
+        Rollers: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Rollers%20basic.glb',
+        Velo: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Velo%20basic.glb',
+        Skateboard: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Skateboard%20basic.glb'
+      },
+      stuff: {
+        Fighter: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/gant%20choose.glb',
+        Soldat: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/Revolver.glb',
+        Ingenieur: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/Chaine%20electrique.glb'
+      }
+    };
 
-            buildStickmanBase();
-            updateCharacter();
-            animate();
+    let scene, camera, renderer, controls, loader;
+    let currentCharacterMesh, currentVehicleMesh, currentStuffMesh;
+
+    function init3D() {
+      const container = document.getElementById('viewport');
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0d0f12);
+
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.set(0, 1.5, 3.5);
+
+      renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas3d'), antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.target.set(0, 0.8, 0);
+
+      // Lumières
+      const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0x00e5ff, 1.5);
+      dirLight.position.set(5, 10, 7);
+      scene.add(dirLight);
+
+      loader = new THREE.GLTFLoader();
+
+      // Sol Grille Garage
+      const grid = new THREE.GridHelper(10, 20, 0x00e5ff, 0x222222);
+      grid.position.y = 0;
+      scene.add(grid);
+
+      // Chargement Initial
+      loadCharacter();
+      loadVehicle('Velo');
+      loadStuff('Fighter');
+
+      animate();
+    }
+
+    function applyMeshColor(model, colorHex) {
+      if (!model) return;
+      model.traverse((child) => {
+        if (child.isMesh && child.material) {
+          child.material = child.material.clone();
+          child.material.color.set(colorHex);
         }
+      });
+    }
 
-        function buildStickmanBase() {
-            const material = new THREE.MeshPhongMaterial({ color: 0x00ffff });
+    function loadCharacter() {
+      loader.load(coffRegistry.character, (gltf) => {
+        if (currentCharacterMesh) scene.remove(currentCharacterMesh);
+        currentCharacterMesh = gltf.scene;
+        currentCharacterMesh.position.set(0, 0.2, 0);
+        applyMeshColor(currentCharacterMesh, document.getElementById('color-stickman').value);
+        scene.add(currentCharacterMesh);
+      });
+    }
 
-            // Tête
-            const headGeo = new THREE.SphereGeometry(0.3, 16, 16);
-            headMesh = new THREE.Mesh(headGeo, material);
-            headMesh.position.y = 2.2;
-            stickmanGroup.add(headMesh);
+    function loadVehicle(type) {
+      loader.load(coffRegistry.vehicles[type], (gltf) => {
+        if (currentVehicleMesh) scene.remove(currentVehicleMesh);
+        currentVehicleMesh = gltf.scene;
+        currentVehicleMesh.position.set(0, 0, 0);
+        applyMeshColor(currentVehicleMesh, document.getElementById('color-vehicle').value);
+        scene.add(currentVehicleMesh);
+      });
+    }
 
-            // Corps
-            const bodyGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.9);
-            const bodyMesh = new THREE.Mesh(bodyGeo, material);
-            bodyMesh.position.y = 1.5;
-            stickmanGroup.add(bodyMesh);
+    function loadStuff(classType) {
+      loader.load(coffRegistry.stuff[classType], (gltf) => {
+        if (currentStuffMesh) scene.remove(currentStuffMesh);
+        currentStuffMesh = gltf.scene;
+        currentStuffMesh.position.set(0, 0.8, 0);
+        applyMeshColor(currentStuffMesh, document.getElementById('color-stuff').value);
+        scene.add(currentStuffMesh);
+      });
+    }
 
-            // Bras
-            const armGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.8);
-            const leftArm = new THREE.Mesh(armGeo, material);
-            leftArm.position.set(-0.3, 1.6, 0);
-            leftArm.rotation.z = Math.PI / 4;
-            stickmanGroup.add(leftArm);
+    // Événements d'IHM & Mise à jour instantanée
+    document.getElementById('color-stickman').addEventListener('input', (e) => applyMeshColor(currentCharacterMesh, e.target.value));
+    document.getElementById('color-vehicle').addEventListener('input', (e) => applyMeshColor(currentVehicleMesh, e.target.value));
+    document.getElementById('color-stuff').addEventListener('input', (e) => applyMeshColor(currentStuffMesh, e.target.value));
 
-            const rightArm = new THREE.Mesh(armGeo, material);
-            rightArm.position.set(0.3, 1.6, 0);
-            rightArm.rotation.z = -Math.PI / 4;
-            stickmanGroup.add(rightArm);
+    document.getElementById('vehicle-select').addEventListener('change', (e) => loadVehicle(e.target.value));
+    document.getElementById('class-select').addEventListener('change', (e) => loadStuff(e.target.value));
 
-            // Jambes
-            const legGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.9);
-            const leftLeg = new THREE.Mesh(legGeo, material);
-            leftLeg.position.set(-0.2, 0.65, 0);
-            leftLeg.rotation.z = 0.15;
-            stickmanGroup.add(leftLeg);
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
 
-            const rightLeg = new THREE.Mesh(legGeo, material);
-            rightLeg.position.set(0.2, 0.65, 0);
-            rightLeg.rotation.z = -0.15;
-            stickmanGroup.add(rightLeg);
-        }
+    window.addEventListener('resize', () => {
+      const container = document.getElementById('viewport');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
 
-        function createEmojiTexture(emojiText) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 128;
-            canvas.height = 128;
-            const ctx = canvas.getContext('2d');
-            ctx.font = '90px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(emojiText, 64, 64);
+    function launchGame() {
+      alert("Lancement de la partie Fight for Fast avec la configuration Coff sélectionnée !");
+    }
 
-            const texture = new THREE.CanvasTexture(canvas);
-            return new THREE.SpriteMaterial({ map: texture, transparent: true });
-        }
-
-        function updateCharacter() {
-            const colorHex = document.getElementById('stickColor').value;
-            const emojiChoice = document.getElementById('emojiChoice').value;
-            const vehicle = document.getElementById('vehicle').value;
-            const playerClass = document.getElementById('playerClass').value;
-
-            // Mise à jour 3D Stickman
-            stickmanGroup.traverse((child) => {
-                if (child.isMesh) child.material.color.set(colorHex);
-            });
-
-            // Emoji 3D
-            if (emojiSprite) stickmanGroup.remove(emojiSprite);
-            const spriteMat = createEmojiTexture(emojiChoice);
-            emojiSprite = new THREE.Sprite(spriteMat);
-            emojiSprite.position.set(0, 2.8, 0);
-            emojiSprite.scale.set(0.6, 0.6, 1);
-            stickmanGroup.add(emojiSprite);
-
-            // Véhicule 3D
-            if (vehicleMesh) stickmanGroup.remove(vehicleMesh);
-            let vehGeo;
-            if (vehicle === 'Skateboard') {
-                vehGeo = new THREE.BoxGeometry(0.6, 0.05, 1.4);
-            } else if (vehicle === 'VTT') {
-                vehGeo = new THREE.TorusGeometry(0.3, 0.05, 8, 16);
-            } else {
-                vehGeo = new THREE.BoxGeometry(0.3, 0.15, 0.4);
-            }
-            const vehMat = new THREE.MeshPhongMaterial({ color: 0xffa500 });
-            vehicleMesh = new THREE.Mesh(vehGeo, vehMat);
-            vehicleMesh.position.set(0, 0.1, 0);
-            stickmanGroup.add(vehicleMesh);
-
-            // --- GENERATION CODE COFF (Empilement des ouvertures, puis valeurs, puis fermetures) ---
-            const coffSyntax = 
-`<CharacterSetup>
-<Visual_Avatar>
-<Color>
-<Head_Emoji>
-<Vehicle>
-<Type>
-<Class_Rules>
-<Name>
-<coA1> ↔️ <cob5>
-
-  Color_Value = "${colorHex}" ;
-  Emoji_Value = "${emojiChoice}" ;
-  Vehicle_Value = "${vehicle}" ;
-  Class_Value = "${playerClass}" ;
-
-</co>
-</Name>
-</Class_Rules>
-</Type>
-</Vehicle>
-</Head_Emoji>
-</Color>
-</Visual_Avatar>
-</CharacterSetup>`;
-
-            document.getElementById('coffCodeOutput').innerText = coffSyntax;
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            if (stickmanGroup) {
-                stickmanGroup.rotation.y += 0.01;
-            }
-            renderer.render(scene, camera);
-        }
-
-        function launchGame() {
-            alert("Configuration Coff validée ! Lancement dans le serveur Ginode...");
-        }
-
-        window.onload = init3D;
-    </script>
+    window.onload = init3D;
+  </script>
 </body>
 </html>
+
 
