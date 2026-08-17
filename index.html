@@ -131,7 +131,7 @@
         ✋ <span>Naviguer 3D</span>
       </button>
       <button id="tool-select" class="tool-btn" onclick="setToolMode('select')">
-        🦴 <span>Définir / Transformer Os</span>
+        🦴 <span>Découper / Transformer Membre</span>
       </button>
     </div>
 
@@ -239,56 +239,56 @@
         </div>
 
         <div class="control-group">
-          <label>Os / Ancre Générée</label>
+          <label>Membre Découpé / Os Isolé</label>
           <select id="bone-target" onchange="updateBoneUI()">
             <option value="none">-- Tout le corps / Objet global --</option>
-            <option value="head">Tête (Os Top)</option>
-            <option value="chest">Torse (Os Middle 1)</option>
-            <option value="pelvis">Bassin (Os Middle 2)</option>
-            <option value="thighLeft">Cuisse Gauche (Os Bas 1G)</option>
-            <option value="calfLeft">Mollet Gauche (Os Bas 2G)</option>
-            <option value="footLeft">Pied Gauche (Os Bas 3G)</option>
-            <option value="forearmLeft">Avant-bras Gauche (Os Limite 1G)</option>
-            <option value="bicepsLeft">Biceps Gauche (Os Limite 2G)</option>
-            <option value="handLeft">Main Gauche (Os Limite 3G)</option>
-            <option value="thighRight">Cuisse Droite (Os Bas 1D)</option>
-            <option value="calfRight">Mollet Droit (Os Bas 2D)</option>
-            <option value="footRight">Pied Droit (Os Bas 3D)</option>
-            <option value="forearmRight">Avant-bras Droit (Os Limite 1D)</option>
-            <option value="bicepsRight">Biceps Droit (Os Limite 2D)</option>
-            <option value="handRight">Main Droite (Os Limite 3D)</option>
+            <option value="head">Tête (Top)</option>
+            <option value="chest">Torse (Middle 1)</option>
+            <option value="pelvis">Bassin (Middle 2)</option>
+            <option value="thighLeft">Cuisse Gauche (Bas 1G)</option>
+            <option value="calfLeft">Mollet Gauche (Bas 2G)</option>
+            <option value="footLeft">Pied Gauche (Bas 3G)</option>
+            <option value="forearmLeft">Avant-bras Gauche (Limite 1G)</option>
+            <option value="bicepsLeft">Biceps Gauche (Limite 2G)</option>
+            <option value="handLeft">Main Gauche (Limite 3G)</option>
+            <option value="thighRight">Cuisse Droite (Bas 1D)</option>
+            <option value="calfRight">Mollet Droit (Bas 2D)</option>
+            <option value="footRight">Pied Droit (Bas 3D)</option>
+            <option value="forearmRight">Avant-bras Droit (Limite 1D)</option>
+            <option value="bicepsRight">Biceps Droit (Limite 2D)</option>
+            <option value="handRight">Main Droite (Limite 3D)</option>
           </select>
         </div>
 
         <div id="admin-modeler-box">
           <div class="slider-row">
-            <label>Position Y (Hauteur)</label>
+            <label>Position Y (Hauteur Membre)</label>
             <input type="range" id="mod-pos-y" min="-2" max="2" step="0.01" value="0.28">
           </div>
           <div class="slider-row">
-            <label>Position Z (Profondeur)</label>
+            <label>Position Z (Profondeur Membre)</label>
             <input type="range" id="mod-pos-z" min="-2" max="2" step="0.01" value="-0.02">
           </div>
           <div class="slider-row">
-            <label>Position X (Latéral)</label>
+            <label>Position X (Latéral Membre)</label>
             <input type="range" id="mod-pos-x" min="-2" max="2" step="0.01" value="0">
           </div>
           <div class="slider-row">
-            <label>Rotation X (Inclinaison)</label>
+            <label>Rotation X (Inclinaison Membre)</label>
             <input type="range" id="mod-rot-x" min="-3.14" max="3.14" step="0.05" value="-0.15">
           </div>
           <div class="slider-row">
-            <label>Taille / Échelle de l'Os</label>
+            <label>Taille / Échelle du Membre</label>
             <input type="range" id="mod-scale" min="0.05" max="3" step="0.05" value="1">
           </div>
         </div>
 
         <div style="background: rgba(0, 229, 255, 0.08); border: 1px solid #00e5ff; padding: 10px; border-radius: 6px; display: flex; flex-direction: column; gap: 8px;">
-          <label style="color: #00e5ff;">💾 Pré-enregistrer Preset Rig Admin</label>
-          <input type="text" id="preset-name-input" placeholder="Nom du preset de pose...">
+          <label style="color: #00e5ff;">💾 Enregistrer Preset Membre</label>
+          <input type="text" id="preset-name-input" placeholder="Nom du preset...">
           <button class="action-btn" onclick="saveAdminPreset()">💾 Enregistrer Preset Admin</button>
 
-          <label style="color: #a0aab8; margin-top: 4px;">📂 Presets Rigs Sauvegardés</label>
+          <label style="color: #a0aab8; margin-top: 4px;">📂 Presets Sauvegardés</label>
           <select id="admin-presets-select" onchange="loadAdminPreset(this.value)">
             <option value="">-- Charger un Preset --</option>
           </select>
@@ -334,7 +334,8 @@
 
     let scene, camera, renderer, controls, loader;
     let characterGroup, currentVehicleMesh, currentStuffMesh;
-    let selectionBoxGizmo = null; // Gizmo Visuel de l'Os Sélectionné
+    let selectionBoxGizmo = null;
+    let activeBoneNode = null; // Os/Membre virtuel isolé
     let savedCharacters = {};
     let adminPresets = {};
     let currentToolMode = 'nav';
@@ -502,6 +503,7 @@
     }
 
     function getActiveTarget() {
+      if (activeBoneNode) return activeBoneNode;
       const modelerTarget = document.getElementById('modeler-target').value;
       if (modelerTarget === 'stuff') return currentStuffMesh;
       if (modelerTarget === 'vehicle') return currentVehicleMesh;
@@ -518,10 +520,8 @@
       if (type === 'rotX') targetObj.rotation.x = val;
       if (type === 'scale') targetObj.scale.set(val, val, val);
 
-      // Repositionner le Gizmo d'Os
-      if (selectionBoxGizmo) {
-        selectionBoxGizmo.position.copy(targetObj.position);
-        selectionBoxGizmo.scale.set(val, val, val);
+      if (selectionBoxGizmo && selectionBoxGizmo.update) {
+        selectionBoxGizmo.update();
       }
     }
 
@@ -534,12 +534,6 @@
       document.getElementById('mod-pos-x').value = targetObj.position.x.toFixed(2);
       document.getElementById('mod-rot-x').value = targetObj.rotation.x.toFixed(2);
       document.getElementById('mod-scale').value = targetObj.scale.x.toFixed(2);
-
-      // Créer la Boîte / Os Visuel Néon autour de l'objet sélectionné
-      if (selectionBoxGizmo) scene.remove(selectionBoxGizmo);
-      const bbox = new THREE.BoxHelper(targetObj, 0xff0055);
-      selectionBoxGizmo = bbox;
-      scene.add(selectionBoxGizmo);
     }
 
     function parseStickmanMember(hitPoint) {
@@ -561,7 +555,22 @@
       return isLeft ? 'footLeft' : 'footRight';
     }
 
-    // --- CRÉATEUR DE BONE PAR SÉLECTION ---
+    // --- CRÉATEUR DE CUBE/OS VIRTUEL ISOLÉ PAR POINT D'IMPACT ---
+    function createIsolatedMemberBone(hitPoint) {
+      if (selectionBoxGizmo) scene.remove(selectionBoxGizmo);
+
+      // Création d'une boîte englobante locale néon au point d'impact précis
+      const size = 0.25;
+      const geometry = new THREE.BoxGeometry(size, size, size);
+      const wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0055, wireframe: true });
+      
+      activeBoneNode = new THREE.Mesh(geometry, wireframeMaterial);
+      activeBoneNode.position.copy(hitPoint);
+      scene.add(activeBoneNode);
+
+      selectionBoxGizmo = activeBoneNode;
+    }
+
     function initRaycastBoneSelection() {
       const viewport = document.getElementById('viewport-3d');
 
@@ -588,13 +597,16 @@
           if (currentVehicleMesh && (hitObj === currentVehicleMesh || currentVehicleMesh.getObjectById(hitObj.id))) {
             document.getElementById('modeler-target').value = 'vehicle';
             document.getElementById('bone-target').value = 'none';
+            createIsolatedMemberBone(hitPoint);
           } else if (currentStuffMesh && (hitObj === currentStuffMesh || currentStuffMesh.getObjectById(hitObj.id))) {
             document.getElementById('modeler-target').value = 'stuff';
             document.getElementById('bone-target').value = 'none';
+            createIsolatedMemberBone(hitPoint);
           } else {
             document.getElementById('modeler-target').value = 'stickman';
             const boneKey = parseStickmanMember(hitPoint);
             document.getElementById('bone-target').value = boneKey;
+            createIsolatedMemberBone(hitPoint);
           }
           updateBoneUI();
         }
@@ -768,7 +780,6 @@
       controls.update();
       if (characterGroup) characterGroup.rotation.y += 0.003;
       if (currentVehicleMesh) currentVehicleMesh.rotation.y += 0.003;
-      if (selectionBoxGizmo) selectionBoxGizmo.update();
       renderer.render(scene, camera);
     }
 
@@ -783,4 +794,5 @@
   </script>
 </body>
 </html>
+
 
