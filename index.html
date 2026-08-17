@@ -180,15 +180,7 @@
             <label>Échelle (Taille Global)</label>
             <input type="range" id="mod-scale" min="0.05" max="2" step="0.05" value="1">
           </div>
-        </div>
-
-        <button class="action-btn" style="background: #ffaa00; color: #000;" onclick="copySocketConfig()">📋 Copier Config Sockets</button>
-      </div>
-    </div>
-
-    <button class="btn-launch" onclick="alert('Lancement du jeu Fight For Fast !')">START FIGHT</button>
-  </div>
-  <div class="control-group">
+        <div class="control-group">
   <label>Partie du corps à sculpter</label>
   <select id="bone-target" onchange="updateBoneUI()">
     <option value="none">-- Choisir une partie --</option>
@@ -199,9 +191,18 @@
     <option value="handLeft">Main Gauche</option>
     <option value="footRight">Pied Droit</option>
     <option value="footLeft">Pied Gauche</option>
-  </select>
-</div>
+   </select>
+          </div>
+        </div>
 
+        <button class="action-btn" style="background: #ffaa00; color: #000;" onclick="copySocketConfig()">📋 Copier Config Sockets</button>
+      </div>
+    </div>
+
+    <button class="btn-launch" onclick="alert('Lancement du jeu Fight For Fast !')">START FIGHT</button>
+  </div>
+  
+        
 
   <script>
     const ADMIN_SECRET = "admin50124801080";
