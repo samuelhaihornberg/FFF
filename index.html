@@ -12,7 +12,6 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Impact', 'Segoe UI', sans-serif; user-select: none; }
     
-    /* SCROLL LATÉRAL GLOBAL DANS LE LAUNCHER */
     body { 
       background-color: #050508; 
       color: #fff; 
@@ -24,7 +23,6 @@
       white-space: nowrap; 
     }
 
-    /* SCROLL INDÉPENDANT HOMEPAGE / VIEWPORT 3D */
     #viewport-3d { 
       flex: 1; 
       min-width: 420px; 
@@ -32,7 +30,6 @@
       position: relative; 
       background: radial-gradient(circle, #101424 0%, #050508 100%); 
       touch-action: none; 
-      overflow-y: auto; 
       display: inline-block;
       vertical-align: top;
     }
@@ -78,7 +75,6 @@
       font-weight: bold;
     }
 
-    /* SCROLL INDÉPENDANT DASHBOARD ADMIN / PANNEAU DE CONFIG */
     #launcher-panel { 
       width: 380px; 
       min-width: 380px; 
@@ -135,7 +131,7 @@
         ✋ <span>Naviguer 3D</span>
       </button>
       <button id="tool-select" class="tool-btn" onclick="setToolMode('select')">
-        🖱️ <span>Sélecteur Bone</span>
+        🦴 <span>Définir / Transformer Os</span>
       </button>
     </div>
 
@@ -231,10 +227,10 @@
       </div>
 
       <div id="admin-controls" style="display: none; flex-direction: column; gap: 10px;">
-        <h3 style="color: #ff0055; font-size: 1.1rem; text-transform: uppercase;">🛠️ Modéliseur & Presets Admin</h3>
+        <h3 style="color: #ff0055; font-size: 1.1rem; text-transform: uppercase;">🛠️ Rigging & Modéliseur Admin</h3>
         
         <div class="control-group">
-          <label>Cible à Modéliser</label>
+          <label>Cible Cliquée</label>
           <select id="modeler-target" onchange="updateBoneUI()">
             <option value="stickman">Personnage Stickman</option>
             <option value="vehicle">Véhicule</option>
@@ -243,34 +239,24 @@
         </div>
 
         <div class="control-group">
-          <label>Partie du Corps / Bone Sélectionné</label>
+          <label>Os / Ancre Générée</label>
           <select id="bone-target" onchange="updateBoneUI()">
             <option value="none">-- Tout le corps / Objet global --</option>
-            <optgroup label="Tête & Tronc">
-              <option value="head">Tête (Top)</option>
-              <option value="chest">Torse (Middle 1)</option>
-              <option value="pelvis">Bassin (Middle 2)</option>
-            </optgroup>
-            <optgroup label="Membre Inférieur Gauche">
-              <option value="thighLeft">Cuisse Gauche (Bas 1)</option>
-              <option value="calfLeft">Mollet Gauche (Bas 2)</option>
-              <option value="footLeft">Pied Gauche (Bas 3)</option>
-            </optgroup>
-            <optgroup label="Bras Gauche">
-              <option value="forearmLeft">Avant-bras Gauche (Limite 1)</option>
-              <option value="bicepsLeft">Biceps Gauche (Limite 2)</option>
-              <option value="handLeft">Main Gauche (Limite 3)</option>
-            </optgroup>
-            <optgroup label="Membre Inférieur Droit">
-              <option value="thighRight">Cuisse Droite (Bas 1)</option>
-              <option value="calfRight">Mollet Droit (Bas 2)</option>
-              <option value="footRight">Pied Droit (Bas 3)</option>
-            </optgroup>
-            <optgroup label="Bras Droit">
-              <option value="forearmRight">Avant-bras Droit (Limite 1)</option>
-              <option value="bicepsRight">Biceps Droit (Limite 2)</option>
-              <option value="handRight">Main Droite (Limite 3)</option>
-            </optgroup>
+            <option value="head">Tête (Os Top)</option>
+            <option value="chest">Torse (Os Middle 1)</option>
+            <option value="pelvis">Bassin (Os Middle 2)</option>
+            <option value="thighLeft">Cuisse Gauche (Os Bas 1G)</option>
+            <option value="calfLeft">Mollet Gauche (Os Bas 2G)</option>
+            <option value="footLeft">Pied Gauche (Os Bas 3G)</option>
+            <option value="forearmLeft">Avant-bras Gauche (Os Limite 1G)</option>
+            <option value="bicepsLeft">Biceps Gauche (Os Limite 2G)</option>
+            <option value="handLeft">Main Gauche (Os Limite 3G)</option>
+            <option value="thighRight">Cuisse Droite (Os Bas 1D)</option>
+            <option value="calfRight">Mollet Droit (Os Bas 2D)</option>
+            <option value="footRight">Pied Droit (Os Bas 3D)</option>
+            <option value="forearmRight">Avant-bras Droit (Os Limite 1D)</option>
+            <option value="bicepsRight">Biceps Droit (Os Limite 2D)</option>
+            <option value="handRight">Main Droite (Os Limite 3D)</option>
           </select>
         </div>
 
@@ -288,21 +274,21 @@
             <input type="range" id="mod-pos-x" min="-2" max="2" step="0.01" value="0">
           </div>
           <div class="slider-row">
-            <label>Rotation X (Inclinaison Avant/Arrière)</label>
+            <label>Rotation X (Inclinaison)</label>
             <input type="range" id="mod-rot-x" min="-3.14" max="3.14" step="0.05" value="-0.15">
           </div>
           <div class="slider-row">
-            <label>Échelle (Taille Global)</label>
-            <input type="range" id="mod-scale" min="0.05" max="2" step="0.05" value="1">
+            <label>Taille / Échelle de l'Os</label>
+            <input type="range" id="mod-scale" min="0.05" max="3" step="0.05" value="1">
           </div>
         </div>
 
         <div style="background: rgba(0, 229, 255, 0.08); border: 1px solid #00e5ff; padding: 10px; border-radius: 6px; display: flex; flex-direction: column; gap: 8px;">
-          <label style="color: #00e5ff;">💾 Pré-enregistrer Config Sélection</label>
-          <input type="text" id="preset-name-input" placeholder="Nom du preset...">
+          <label style="color: #00e5ff;">💾 Pré-enregistrer Preset Rig Admin</label>
+          <input type="text" id="preset-name-input" placeholder="Nom du preset de pose...">
           <button class="action-btn" onclick="saveAdminPreset()">💾 Enregistrer Preset Admin</button>
 
-          <label style="color: #a0aab8; margin-top: 4px;">📂 Presets Pré-enregistrés</label>
+          <label style="color: #a0aab8; margin-top: 4px;">📂 Presets Rigs Sauvegardés</label>
           <select id="admin-presets-select" onchange="loadAdminPreset(this.value)">
             <option value="">-- Charger un Preset --</option>
           </select>
@@ -348,6 +334,7 @@
 
     let scene, camera, renderer, controls, loader;
     let characterGroup, currentVehicleMesh, currentStuffMesh;
+    let selectionBoxGizmo = null; // Gizmo Visuel de l'Os Sélectionné
     let savedCharacters = {};
     let adminPresets = {};
     let currentToolMode = 'nav';
@@ -386,7 +373,7 @@
       loader = new THREE.GLTFLoader();
 
       loadAll('Velo', 'Fighter');
-      initRaycastSelection();
+      initRaycastBoneSelection();
       animate();
     }
 
@@ -488,6 +475,7 @@
       } else {
         toolbar.style.display = 'none';
         setToolMode('nav');
+        if (selectionBoxGizmo) scene.remove(selectionBoxGizmo);
       }
     }
 
@@ -529,6 +517,12 @@
       if (type === 'posX') targetObj.position.x = val;
       if (type === 'rotX') targetObj.rotation.x = val;
       if (type === 'scale') targetObj.scale.set(val, val, val);
+
+      // Repositionner le Gizmo d'Os
+      if (selectionBoxGizmo) {
+        selectionBoxGizmo.position.copy(targetObj.position);
+        selectionBoxGizmo.scale.set(val, val, val);
+      }
     }
 
     function updateBoneUI() {
@@ -540,36 +534,35 @@
       document.getElementById('mod-pos-x').value = targetObj.position.x.toFixed(2);
       document.getElementById('mod-rot-x').value = targetObj.rotation.x.toFixed(2);
       document.getElementById('mod-scale').value = targetObj.scale.x.toFixed(2);
+
+      // Créer la Boîte / Os Visuel Néon autour de l'objet sélectionné
+      if (selectionBoxGizmo) scene.remove(selectionBoxGizmo);
+      const bbox = new THREE.BoxHelper(targetObj, 0xff0055);
+      selectionBoxGizmo = bbox;
+      scene.add(selectionBoxGizmo);
     }
 
-    // --- PARSEUR COMPLET DE DÉTECTION DES MEMBRES PAR RANGÉE ET CÔTÉ (X / Y) ---
     function parseStickmanMember(hitPoint) {
       const y = hitPoint.y;
       const x = hitPoint.x;
       const absX = Math.abs(x);
-      const isLeft = x < 0; // Côté gauche vs droit
+      const isLeft = x < 0;
 
-      // Top : Tête
       if (y > 1.5) return 'head';
-
-      // Bras & Limites
       if (y > 0.9 && absX > 0.25) {
-        if (absX > 0.45) return isLeft ? 'handLeft' : 'handRight';      // Limite 3 : Main
-        if (absX > 0.35) return isLeft ? 'forearmLeft' : 'forearmRight'; // Limite 1 : Avant-bras
-        return isLeft ? 'bicepsLeft' : 'bicepsRight';                     // Limite 2 : Biceps
+        if (absX > 0.45) return isLeft ? 'handLeft' : 'handRight';
+        if (absX > 0.35) return isLeft ? 'forearmLeft' : 'forearmRight';
+        return isLeft ? 'bicepsLeft' : 'bicepsRight';
       }
-
-      // Middle : Torse & Bassin
-      if (y > 1.15) return 'chest';  // Middle 1 : Torse
-      if (y > 0.85) return 'pelvis'; // Middle 2 : Bassin
-
-      // Bas : Membres Inférieurs (Jambes)
-      if (y > 0.55) return isLeft ? 'thighLeft' : 'thighRight'; // Bas 1 : Cuisse
-      if (y > 0.25) return isLeft ? 'calfLeft' : 'calfRight';   // Bas 2 : Mollet
-      return isLeft ? 'footLeft' : 'footRight';                 // Bas 3 : Pied
+      if (y > 1.15) return 'chest';
+      if (y > 0.85) return 'pelvis';
+      if (y > 0.55) return isLeft ? 'thighLeft' : 'thighRight';
+      if (y > 0.25) return isLeft ? 'calfLeft' : 'calfRight';
+      return isLeft ? 'footLeft' : 'footRight';
     }
 
-    function initRaycastSelection() {
+    // --- CRÉATEUR DE BONE PAR SÉLECTION ---
+    function initRaycastBoneSelection() {
       const viewport = document.getElementById('viewport-3d');
 
       viewport.addEventListener('pointerdown', (e) => {
@@ -775,6 +768,7 @@
       controls.update();
       if (characterGroup) characterGroup.rotation.y += 0.003;
       if (currentVehicleMesh) currentVehicleMesh.rotation.y += 0.003;
+      if (selectionBoxGizmo) selectionBoxGizmo.update();
       renderer.render(scene, camera);
     }
 
@@ -789,3 +783,4 @@
   </script>
 </body>
 </html>
+
