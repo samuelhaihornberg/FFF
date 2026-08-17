@@ -167,18 +167,46 @@
     };
 
     // Offsets magnétiques (encochement / magnétisme des objets)
-    const sockets = {
+    
       vehicles: {
-        Velo: { pos: [0, 0, 0], charOffset: [0, 0.45, -0.1] },
-        Rollers: { pos: [0, 0, 0], charOffset: [0, 0.15, 0] },
-        Skateboard: { pos: [0, 0, 0], charOffset: [0, 0.25, 0] }
-      },
-      stuff: {
-        Fighter: { pos: [0, 0.85, 0.1], parentTo: 'character' },
-        Soldat: { pos: [0.3, 0.9, 0.2], parentTo: 'character' },
-        Ingenieur: { pos: [0, 1.1, -0.2], parentTo: 'character' }
-      }
-    };
+  // Offsets magnétiques et échelles ajustées
+const sockets = {
+  vehicles: {
+    Velo: { 
+      pos: [0, 0, 0], 
+      scale: [0.5, 0.5, 0.5], 
+      charOffset: [0, 0.45, -0.05] 
+    },
+    Rollers: { 
+      pos: [0, 0, 0], 
+      scale: [0.15, 0.15, 0.15], // Réduction drastique des rollers
+      charOffset: [0, 0.08, 0] 
+    },
+    Skateboard: { 
+      pos: [0, 0, 0], 
+      scale: [0.4, 0.4, 0.4], 
+      charOffset: [0, 0.18, 0] 
+    }
+  },
+  stuff: {
+    Fighter: { 
+      pos: [0, 0.4, 0], 
+      scale: [0.25, 0.25, 0.25], 
+      parentTo: 'character' 
+    },
+    Soldat: { 
+      pos: [0.18, 0.5, 0.15], // Calé au niveau de la main du Stickman
+      scale: [0.12, 0.12, 0.12], // Réduction du revolver
+      parentTo: 'character' 
+    },
+    Ingenieur: { 
+      pos: [0, 0.65, -0.1], 
+      scale: [0.2, 0.2, 0.2], 
+      parentTo: 'character' 
+    }
+  }
+};
+
 
     let scene, camera, renderer, controls, loader;
     let characterGroup, currentVehicleMesh, currentStuffMesh;
@@ -219,8 +247,42 @@
       characterGroup = new THREE.Group();
       scene.add(characterGroup);
 
-      loadAll('Velo', 'Fighter');
-      animate();
+      function loadAll(vehicleType, classType) {
+  const vConfig = sockets.vehicles[vehicleType];
+  const sConfig = sockets.stuff[classType];
+
+  // 1. Charger et redimensionner le Véhicule
+  loader.load(coffRegistry.vehicles[vehicleType], (gltfVehicle) => {
+    if (currentVehicleMesh) scene.remove(currentVehicleMesh);
+    currentVehicleMesh = gltfVehicle.scene;
+    currentVehicleMesh.scale.set(...vConfig.scale);
+    applyMeshColor(currentVehicleMesh, document.getElementById('color-vehicle').value);
+    scene.add(currentVehicleMesh);
+
+    // 2. Encochement du Stickman sur le Véhicule
+    loader.load(coffRegistry.character, (gltfChar) => {
+      if (characterGroup) scene.remove(characterGroup);
+      characterGroup = gltfChar.scene;
+      
+      const vOffset = vConfig.charOffset;
+      characterGroup.position.set(vOffset[0], vOffset[1], vOffset[2]);
+      applyMeshColor(characterGroup, document.getElementById('color-stickman').value);
+      scene.add(characterGroup);
+
+      // 3. Encochement et échelle du Stuff sur le Stickman
+      loader.load(coffRegistry.stuff[classType], (gltfStuff) => {
+        if (currentStuffMesh) characterGroup.remove(currentStuffMesh);
+        currentStuffMesh = gltfStuff.scene;
+        
+        currentStuffMesh.scale.set(...sConfig.scale);
+        currentStuffMesh.position.set(...sConfig.pos);
+        applyMeshColor(currentStuffMesh, document.getElementById('color-stuff').value);
+        characterGroup.add(currentStuffMesh);
+      });
+    });
+  });
+}
+
     }
 
     function applyMeshColor(model, colorHex) {
@@ -242,28 +304,81 @@
         applyMeshColor(currentVehicleMesh, document.getElementById('color-vehicle').value);
         scene.add(currentVehicleMesh);
 
-        // 2. Encochement Magnétique du Personnage sur le Véhicule
-        loader.load(coffRegistry.character, (gltfChar) => {
-          if (characterGroup) scene.remove(characterGroup);
-          characterGroup = gltfChar.scene;
-          
-          const vOffset = sockets.vehicles[vehicleType].charOffset;
-          characterGroup.position.set(vOffset[0], vOffset[1], vOffset[2]);
-          applyMeshColor(characterGroup, document.getElementById('color-stickman').value);
-          scene.add(characterGroup);
+        // Offsets magnétiques et échelles ajustées
+const sockets = {
+  vehicles: {
+    Velo: { 
+      pos: [0, 0, 0], 
+      scale: [0.5, 0.5, 0.5], 
+      charOffset: [0, 0.45, -0.05] 
+    },
+    Rollers: { 
+      pos: [0, 0, 0], 
+      scale: [0.15, 0.15, 0.15], 
+      charOffset: [0, 0.08, 0] 
+    },
+    Skateboard: { 
+      pos: [0, 0, 0], 
+      scale: [0.4, 0.4, 0.4], 
+      charOffset: [0, 0.18, 0] 
+    }
+  },
+  stuff: {
+    Fighter: { 
+      pos: [0, 0.4, 0], 
+      scale: [0.25, 0.25, 0.25], 
+      parentTo: 'character' 
+    },
+    Soldat: { 
+      pos: [0.18, 0.5, 0.15], 
+      scale: [0.12, 0.12, 0.12], 
+      parentTo: 'character' 
+    },
+    Ingenieur: { 
+      pos: [0, 0.65, -0.1], 
+      scale: [0.2, 0.2, 0.2], 
+      parentTo: 'character' 
+    }
+  }
+};
 
-          // 3. Encochement Magnétique du Stuff sur le Personnage
-          loader.load(coffRegistry.stuff[classType], (gltfStuff) => {
-            if (currentStuffMesh) characterGroup.remove(currentStuffMesh);
-            currentStuffMesh = gltfStuff.scene;
-            
-            const sOffset = sockets.stuff[classType].pos;
-            currentStuffMesh.position.set(sOffset[0], sOffset[1], sOffset[2]);
-            applyMeshColor(currentStuffMesh, document.getElementById('color-stuff').value);
-            characterGroup.add(currentStuffMesh); // Imbrification hiérarchique
-          });
-        });
+// Chargement magnétisé imbriqué avec échelle
+function loadAll(vehicleType, classType) {
+  const vConfig = sockets.vehicles[vehicleType];
+  const sConfig = sockets.stuff[classType];
+
+  // 1. Charger et redimensionner le Véhicule
+  loader.load(coffRegistry.vehicles[vehicleType], (gltfVehicle) => {
+    if (currentVehicleMesh) scene.remove(currentVehicleMesh);
+    currentVehicleMesh = gltfVehicle.scene;
+    currentVehicleMesh.scale.set(...vConfig.scale);
+    applyMeshColor(currentVehicleMesh, document.getElementById('color-vehicle').value);
+    scene.add(currentVehicleMesh);
+
+    // 2. Encochement du Stickman sur le Véhicule
+    loader.load(coffRegistry.character, (gltfChar) => {
+      if (characterGroup) scene.remove(characterGroup);
+      characterGroup = gltfChar.scene;
+      
+      const vOffset = vConfig.charOffset;
+      characterGroup.position.set(vOffset[0], vOffset[1], vOffset[2]);
+      applyMeshColor(characterGroup, document.getElementById('color-stickman').value);
+      scene.add(characterGroup);
+
+      // 3. Encochement et échelle du Stuff sur le Stickman
+      loader.load(coffRegistry.stuff[classType], (gltfStuff) => {
+        if (currentStuffMesh) characterGroup.remove(currentStuffMesh);
+        currentStuffMesh = gltfStuff.scene;
+        
+        currentStuffMesh.scale.set(...sConfig.scale);
+        currentStuffMesh.position.set(...sConfig.pos);
+        applyMeshColor(currentStuffMesh, document.getElementById('color-stuff').value);
+        characterGroup.add(currentStuffMesh);
       });
+    });
+  });
+}
+
     }
 
     // Gestion Interface & Sauvegarde
