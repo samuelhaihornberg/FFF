@@ -208,6 +208,9 @@
     const ADMIN_SECRET = "admin50124801080";
     let isAdminUnlocked = false;
 
+    let activeTarget = null; // Cette variable retiendra l'os ou l'objet sélectionné
+
+    
     const coffRegistry = {
       character: 'https://raw.githubusercontent.com/samuelhaihornberg/roll-punch/41fa9ca2723bf507b70a789976fa540ea431f1bf/Personnages/Model%20emojistick.glb',
       vehicles: {
@@ -423,9 +426,48 @@
     document.getElementById('mod-scale').addEventListener('input', (e) => applyModelerTransform('scale', parseFloat(e.target.value)));
 
 // Mise à jour de la cible : si "none" on modifie le groupe, sinon un os précis
+// --- NOUVEAU CONTROLLER DE MODÉLISATION ---
+
+// Fonction utilitaire pour récupérer la cible active
+function getActiveTarget() {
+  const modelerTarget = document.getElementById('modeler-target').value; // stickman, vehicle, stuff
+  const boneKey = document.getElementById('bone-target').value; // head, handRight, etc.
+
+  // 1. Si un os est sélectionné, on prend l'os
+  if (boneKey !== 'none' && detectedBones[boneKey]) {
+    return detectedBones[boneKey];
+  }
+
+  // 2. Sinon on prend l'objet entier choisi
+  if (modelerTarget === 'stuff') return currentStuffMesh;
+  if (modelerTarget === 'vehicle') return currentVehicleMesh;
+  return characterGroup;
+}
+
+// Appliquer les changements des sliders
 function applyModelerTransform(type, val) {
-  const modelerTarget = document.getElementById('modeler-target').value; // 'stickman', 'vehicle', 'stuff'
-  const boneKey = document.getElementById('bone-target').value; // 'head', 'handRight', etc.
+  let targetObj = getActiveTarget();
+  if (!targetObj) return;
+
+  if (type === 'posY') targetObj.position.y = val;
+  if (type === 'posZ') targetObj.position.z = val;
+  if (type === 'posX') targetObj.position.x = val;
+  if (type === 'rotX') targetObj.rotation.x = val;
+  if (type === 'scale') targetObj.scale.set(val, val, val);
+}
+
+// Synchroniser les sliders avec l'objet sélectionné
+function updateBoneUI() {
+  let targetObj = getActiveTarget();
+  if (!targetObj) return;
+
+  document.getElementById('mod-pos-y').value = targetObj.position.y.toFixed(2);
+  document.getElementById('mod-pos-z').value = targetObj.position.z.toFixed(2);
+  document.getElementById('mod-pos-x').value = targetObj.position.x.toFixed(2);
+  document.getElementById('mod-rot-x').value = targetObj.rotation.x.toFixed(2);
+  document.getElementById('mod-scale').value = targetObj.scale.x.toFixed(2);
+}
+lementById('bone-target').value; // 'head', 'handRight', etc.
   
   let targetObj;
 
