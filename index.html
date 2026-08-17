@@ -571,46 +571,58 @@
       selectionBoxGizmo = activeBoneNode;
     }
 
-    function initRaycastBoneSelection() {
-      const viewport = document.getElementById('viewport-3d');
+    // --- RECONNAISSANCE D'OBJET ET PARTIE 3D PAR CIBLAGE DE MESH ---
+function initRaycastBoneSelection() {
+  const viewport = document.getElementById('viewport-3d');
 
-      viewport.addEventListener('pointerdown', (e) => {
-        if (currentToolMode !== 'select') return;
+  viewport.addEventListener('pointerdown', (e) => {
+    if (currentToolMode !== 'select') return;
 
-        const rect = viewport.getBoundingClientRect();
-        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    const rect = viewport.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-        raycaster.setFromCamera(mouse, camera);
+    raycaster.setFromCamera(mouse, camera);
 
-        const targets = [];
-        if (characterGroup) targets.push(characterGroup);
-        if (currentVehicleMesh) targets.push(currentVehicleMesh);
-        if (currentStuffMesh) targets.push(currentStuffMesh);
+    // Recherche de tous les sous-objets cliquables dans la scène
+    const intersects = raycaster.intersectObjects(scene.children, true);
 
-        const intersects = raycaster.intersectObjects(targets, true);
+    if (intersects.length > 0) {
+      // Trouver le premier sous-mesh valide (exclure le sol et les helpers)
+      const hitMesh = intersects.find(i => i.object.type === 'Mesh' && i.object !== grid)?.object;
 
-        if (intersects.length > 0) {
-          const hitPoint = intersects[0].point;
-          const hitObj = intersects[0].object;
+      if (!hitMesh) return;
 
-          if (currentVehicleMesh && (hitObj === currentVehicleMesh || currentVehicleMesh.getObjectById(hitObj.id))) {
-            document.getElementById('modeler-target').value = 'vehicle';
-            document.getElementById('bone-target').value = 'none';
-            createIsolatedMemberBone(hitPoint);
-          } else if (currentStuffMesh && (hitObj === currentStuffMesh || currentStuffMesh.getObjectById(hitObj.id))) {
-            document.getElementById('modeler-target').value = 'stuff';
-            document.getElementById('bone-target').value = 'none';
-            createIsolatedMemberBone(hitPoint);
-          } else {
-            document.getElementById('modeler-target').value = 'stickman';
-            const boneKey = parseStickmanMember(hitPoint);
-            document.getElementById('bone-target').value = boneKey;
-            createIsolatedMemberBone(hitPoint);
-          }
-          updateBoneUI();
-        }
-      });
+      // 1. Isoler et définir l'objet ciblé comme membre actif
+      activeBoneNode = hitMesh;
+
+      // 2. Identifier le type d'objet (Stickman, Véhicule ou Équipement)
+      let currentParent = hitMesh;
+      let targetType = 'stickman';
+
+      while (currentParent && currentParent !== scene) {
+        if (currentParent === currentVehicleMesh) { targetType = 'vehicle'; break; }
+        if (currentParent === currentStuffMesh) { targetType = 'stuff'; break; }
+        currentParent = currentParent.parent;
+      }
+
+      document.getElementById('modeler-target').value = targetType;
+
+      // 3. Afficher le nom du sous-composant reconnu
+      const partName = hitMesh.name || 'Partie_3D_Détectée';
+      console.log(`Objet 3D reconnu : ${partName} (Type: ${targetType})`);
+
+      // 4. Créer la boîte de sélection isolée autour de cette partie exacte
+      if (selectionBoxGizmo) scene.remove(selectionBoxGizmo);
+      selectionBoxGizmo = new THREE.BoxHelper(hitMesh, 0xff0055);
+      scene.add(selectionBoxGizmo);
+
+      // 5. Mettre à jour les sliders de réglage Admin
+      updateBoneUI();
+    }
+  });
+}
+
     }
 
     function saveAdminPreset() {
