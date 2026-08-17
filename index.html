@@ -137,289 +137,361 @@
   </div>
 
   <script>
-    const coffRegistry = {
-      character: 'https://raw.githubusercontent.com/samuelhaihornberg/roll-punch/41fa9ca2723bf507b70a789976fa540ea431f1bf/Personnages/Model%20emojistick.glb',
-      vehicles: {
-        Rollers: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Rollers%20basic.glb',
-        Velo: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Velo%20basic.glb',
-        Skateboard: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Skateboard%20basic.glb'
-      },
-      stuff: {
-        Fighter: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/gant%20choose.glb',
-        Soldat: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/Revolver.glb',
-        Ingenieur: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/Chaine%20electrique.glb'
-      }
-    };
-
-    // Configuration des échelles et positions magnétiques
-    const sockets = {
-      vehicles: {
-        Velo: { pos: [0, 0, 0], scale: [0.5, 0.5, 0.5], charOffset: [0, 0.45, -0.05] },
-        Rollers: { pos: [0, 0, 0], scale: [0.15, 0.15, 0.15], charOffset: [0, 0.08, 0] },
-        Skateboard: { pos: [0, 0, 0], scale: [0.4, 0.4, 0.4], charOffset: [0, 0.18, 0] }
-      },
-      stuff: {
-        Fighter: { pos: [0, 0.4, 0], scale: [0.25, 0.25, 0.25] },
-        Soldat: { pos: [0.18, 0.5, 0.15], scale: [0.12, 0.12, 0.12] },
-        Ingenieur: { pos: [0, 0.65, -0.1], scale: [0.2, 0.2, 0.2] }
-      }
-    };
-
-    let scene, camera, renderer, controls, loader;
-    let characterGroup, currentVehicleMesh, currentStuffMesh;
-    let savedCharacters = {};
-
-    function init3D() {
-      const container = document.getElementById('viewport-3d');
-      scene = new THREE.Scene();
-
-      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-      camera.position.set(0, 1.8, 4);
-
-      renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas3d'), antialias: true });
-      renderer.setSize(container.clientWidth, container.clientHeight);
-      renderer.setPixelRatio(window.devicePixelRatio);
-
-      controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.target.set(0, 0.8, 0);
-
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
-      scene.add(ambientLight);
-
-      const light1 = new THREE.PointLight(0x00e5ff, 2, 10);
-      light1.position.set(3, 3, 3);
-      scene.add(light1);
-
-      const light2 = new THREE.PointLight(0xff0055, 2, 10);
-      light2.position.set(-3, 2, -3);
-      scene.add(light2);
-
-      const grid = new THREE.GridHelper(12, 24, 0xff0055, 0x00e5ff);
-      scene.add(grid);
-
-      loader = new THREE.GLTFLoader();
-
-      loadAll('Velo', 'Fighter');
-      animate();
-    }
-
-    function applyMeshColor(model, colorHex) {
-      if (!model) return;
-      model.traverse((child) => {
-        if (child.isMesh && child.material) {
-          child.material = child.material.clone();
-          child.material.color.set(colorHex);
-        }
-      });
-    }
-
-    // Générateur de texture dynamique pour l'emoji de la tête
-    function applyEmojiTexture(model, emojiText) {
-      if (!model) return;
-      const canvas = document.createElement('canvas');
-      canvas.width = 256;
-      canvas.height = 256;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, 256, 256);
-      ctx.font = '140px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(emojiText || '😎', 128, 128);
-
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.needsUpdate = true;
-
-      model.traverse((child) => {
-        if (child.isMesh && child.name.toLowerCase().includes('head')) {
-          child.material = child.material.clone();
-          child.material.map = texture;
-          child.material.needsUpdate = true;
-        }
-      });
-    }
-
-    // Chargement magnétisé imbriqué avec échelle
-    function loadAll(vehicleType, classType) {
-      const vConfig = sockets.vehicles[vehicleType];
-      const sConfig = sockets.stuff[classType];
-
-      loader.load(coffRegistry.vehicles[vehicleType], (gltfVehicle) => {
-        if (currentVehicleMesh) scene.remove(currentVehicleMesh);
-        currentVehicleMesh = gltfVehicle.scene;
-        currentVehicleMesh.scale.set(...vConfig.scale);
-        applyMeshColor(currentVehicleMesh, document.getElementById('color-vehicle').value);
-        scene.add(currentVehicleMesh);
-
-        loader.load(coffRegistry.character, (gltfChar) => {
-          if (characterGroup) scene.remove(characterGroup);
-          characterGroup = gltfChar.scene;
-          
-          const vOffset = vConfig.charOffset;
-          characterGroup.position.set(vOffset[0], vOffset[1], vOffset[2]);
-          
-          const stickColor = document.getElementById('color-stickman').value;
-          const emojiVal = document.getElementById('emoji-input').value;
-
-          applyMeshColor(characterGroup, stickColor);
-          applyEmojiTexture(characterGroup, emojiVal);
-          scene.add(characterGroup);
-
-          loader.load(coffRegistry.stuff[classType], (gltfStuff) => {
-            if (currentStuffMesh) characterGroup.remove(currentStuffMesh);
-            currentStuffMesh = gltfStuff.scene;
-            
-            currentStuffMesh.scale.set(...sConfig.scale);
-            currentStuffMesh.position.set(...sConfig.pos);
-            applyMeshColor(currentStuffMesh, document.getElementById('color-stuff').value);
-            characterGroup.add(currentStuffMesh);
-          });
-        });
-      });
-    }
-
-    function update3DPreview() {
-      const name = document.getElementById('char-name').value || 'Rider';
-      const emoji = document.getElementById('emoji-input').value || '😎';
-      const vehicle = document.getElementById('vehicle-select').value;
-      const classType = document.getElementById('class-select').value;
-
-      document.getElementById('preview-name-display').innerText = name;
-      document.getElementById('preview-emoji-display').innerText = emoji;
-      document.getElementById('preview-vehicle-text').innerText = vehicle;
-      document.getElementById('preview-class-text').innerText = classType;
-
-      loadAll(vehicle, classType);
-    }
-
-    function switchMode(mode) {
-      document.getElementById('tab-create').classList.toggle('active', mode === 'create');
-      document.getElementById('tab-select').classList.toggle('active', mode === 'select');
-      document.getElementById('section-create').style.display = mode === 'create' ? 'flex' : 'none';
-      document.getElementById('section-select').style.display = mode === 'select' ? 'flex' : 'none';
-    }
-
-    function saveCharacter() {
-      const name = document.getElementById('char-name').value;
-      savedCharacters[name] = {
-        colorStickman: document.getElementById('color-stickman').value,
-        emoji: document.getElementById('emoji-input').value,
-        vehicle: document.getElementById('vehicle-select').value,
-        colorVehicle: document.getElementById('color-vehicle').value,
-        classType: document.getElementById('class-select').value,
-        colorStuff: document.getElementById('color-stuff').value
-      };
-
-      const select = document.getElementById('saved-char-select');
-      const option = document.createElement('option');
-      option.value = name;
-      option.innerText = name;
-      select.appendChild(option);
-      alert('Personnage "' + name + '" sauvegardé !');
-    }
-
-    function loadSavedCharacter(name) {
-      if (!name || !savedCharacters[name]) return;
-      const data = savedCharacters[name];
-      document.getElementById('color-stickman').value = data.colorStickman;
-      document.getElementById('emoji-input').value = data.emoji;
-      document.getElementById('vehicle-select').value = data.vehicle;
-      document.getElementById('color-vehicle').value = data.colorVehicle;
-      document.getElementById('class-select').value = data.classType;
-      document.getElementById('color-stuff').value = data.colorStuff;
-
-      update3DPreview();
-    }
-
-    // Synthétiseur audio Hard-Rock Techno
-    let audioCtx, isPlaying = false, audioInterval;
-    function toggleHardrockTechno() {
-      const btn = document.getElementById('audio-toggle');
-      if (!isPlaying) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        isPlaying = true;
-        btn.classList.add('active');
-        btn.innerText = "🔥 Audio Playing (HardTechno)";
         
-        let step = 0;
-        audioInterval = setInterval(() => {
-          if (step % 4 === 0) playKick();
-          if (step % 2 === 0) playRockDistortionBass(step % 8 === 0 ? 110 : 147);
-          step++;
-        }, 110);
-      } else {
-        clearInterval(audioInterval);
-        audioCtx.close();
-        isPlaying = false;
-        btn.classList.remove('active');
-        btn.innerText = "⚡ Audio HardRockTechno";
-      }
+const coffRegistry = {
+  character: 'https://raw.githubusercontent.com/samuelhaihornberg/roll-punch/41fa9ca2723bf507b70a789976fa540ea431f1bf/Personnages/Model%20emojistick.glb',
+  vehicles: {
+    Rollers: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Rollers%20basic.glb',
+    Velo: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Velo%20basic.glb',
+    Skateboard: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Skateboard%20basic.glb'
+  },
+  stuff: {
+    Fighter: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/gant%20choose.glb',
+    Soldat: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/Revolver.glb',
+    Ingenieur: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/Chaine%20electrique.glb'
+  }
+};
+
+// 1. DÉCLARATION DES ANCRAGES CORPS, SQUELETTE ET VÉHICULES
+const bodySkeleton = {
+  // Identification des os/parties du corps du Stickman
+  nodes: {
+    head: ['Head', 'Tete', 'head'],
+    chest: ['Spine', 'Chest', 'Torse'],
+    pelvis: ['Hips', 'Pelvis', 'Fessier'],
+    handRight: ['Hand_R', 'HandR', 'Main_Droit'],
+    handLeft: ['Hand_L', 'HandL', 'Main_Gauche'],
+    footRight: ['Foot_R', 'FootR', 'Pied_Droit'],
+    footLeft: ['Foot_L', 'FootL', 'Pied_Gauche']
+  }
+};
+
+const sockets = {
+  vehicles: {
+    Velo: {
+      scale: [0.5, 0.5, 0.5],
+      // Alignement du Fessier sur la Selle & Mains sur le Guidon
+      targetBodyPart: 'pelvis',
+      charOffset: [0, 0.28, -0.05],
+      charRotation: [-0.15, 0, 0]
+    },
+    Rollers: {
+      scale: [0.15, 0.15, 0.15],
+      // Alignement sur les Pieds/Chevilles
+      targetBodyPart: 'footRight',
+      charOffset: [0, 0.05, 0],
+      charRotation: [0, 0, 0]
+    },
+    Skateboard: {
+      scale: [0.4, 0.4, 0.4],
+      // Alignement sur le Plateau (Pieds/Bassin)
+      targetBodyPart: 'pelvis',
+      charOffset: [0, 0.12, 0],
+      charRotation: [0, 0.25, 0]
     }
-
-    function playKick() {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-      gain.gain.setValueAtTime(1, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.15);
+  },
+  stuff: {
+    Fighter: {
+      targetBodyPart: 'footRight', // Chaussures/bandages lestés aux pieds
+      pos: [0, 0, 0],
+      scale: [0.25, 0.25, 0.25]
+    },
+    Soldat: {
+      targetBodyPart: 'handRight', // Revolver fixé dans la main droite
+      pos: [0.05, 0, 0],
+      scale: [0.12, 0.12, 0.12]
+    },
+    Ingenieur: {
+      targetBodyPart: 'chest', // Chaîne électrique dans le dos/torse
+      pos: [0, 0, -0.05],
+      scale: [0.2, 0.2, 0.2]
     }
+  }
+};
 
-    function playRockDistortionBass(freq) {
-      const osc = audioCtx.createOscillator();
-      const dist = audioCtx.createWaveShaper();
-      const gain = audioCtx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+let scene, camera, renderer, controls, loader;
+let characterGroup, currentVehicleMesh, currentStuffMesh;
+let detectedBones = {}; // Dictionnaire des os détectés sur le Stickman
+let savedCharacters = {};
 
-      const curve = new Float32Array(44100);
-      for (let i = 0; i < 44100; i++) {
-        let x = (i * 2) / 44100 - 1;
-        curve[i] = (3 + 20) * x * 20 * (Math.PI / 180) / (Math.PI + 20 * Math.abs(x));
-      }
-      dist.curve = curve;
+function init3D() {
+  const container = document.getElementById('viewport-3d');
+  scene = new THREE.Scene();
 
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+  camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+  camera.position.set(0, 1.8, 4);
 
-      osc.connect(dist);
-      dist.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.2);
+  renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas3d'), antialias: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.target.set(0, 0.8, 0);
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+  scene.add(ambientLight);
+
+  const light1 = new THREE.PointLight(0x00e5ff, 2, 10);
+  light1.position.set(3, 3, 3);
+  scene.add(light1);
+
+  const light2 = new THREE.PointLight(0xff0055, 2, 10);
+  light2.position.set(-3, 2, -3);
+  scene.add(light2);
+
+  const grid = new THREE.GridHelper(12, 24, 0xff0055, 0x00e5ff);
+  scene.add(grid);
+
+  loader = new THREE.GLTFLoader();
+
+  loadAll('Velo', 'Fighter');
+  animate();
+}
+
+// 2. DÉTECTION AUTOMATIQUE DES OS / PARTIES DU CORPS
+function scanCharacterBones(model) {
+  detectedBones = {};
+  model.traverse((child) => {
+    for (let partName in bodySkeleton.nodes) {
+      const keywords = bodySkeleton.nodes[partName];
+      keywords.forEach(key => {
+        if (child.name.toLowerCase().includes(key.toLowerCase())) {
+          detectedBones[partName] = child;
+        }
+      });
     }
+  });
+}
 
-    // Listeners
-    document.getElementById('color-stickman').addEventListener('input', (e) => applyMeshColor(characterGroup, e.target.value));
-    document.getElementById('color-vehicle').addEventListener('input', (e) => applyMeshColor(currentVehicleMesh, e.target.value));
-    document.getElementById('color-stuff').addEventListener('input', (e) => applyMeshColor(currentStuffMesh, e.target.value));
-
-    document.getElementById('char-name').addEventListener('input', update3DPreview);
-    document.getElementById('emoji-input').addEventListener('input', update3DPreview);
-    document.getElementById('vehicle-select').addEventListener('change', update3DPreview);
-    document.getElementById('class-select').addEventListener('change', update3DPreview);
-
-    function animate() {
-      requestAnimationFrame(animate);
-      controls.update();
-      if (characterGroup) characterGroup.rotation.y += 0.003;
-      if (currentVehicleMesh) currentVehicleMesh.rotation.y += 0.003;
-      renderer.render(scene, camera);
+function applyMeshColor(model, colorHex) {
+  if (!model) return;
+  model.traverse((child) => {
+    if (child.isMesh && child.material) {
+      child.material = child.material.clone();
+      child.material.color.set(colorHex);
     }
+  });
+}
 
-    window.addEventListener('resize', () => {
-      const container = document.getElementById('viewport-3d');
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+function applyEmojiTexture(model, emojiText) {
+  if (!model) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, 256, 256);
+  ctx.font = '140px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(emojiText || '😎', 128, 128);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+
+  model.traverse((child) => {
+    if (child.isMesh && (child.name.toLowerCase().includes('head') || child.name.toLowerCase().includes('tete'))) {
+      child.material = child.material.clone();
+      child.material.map = texture;
+      child.material.needsUpdate = true;
+    }
+  });
+}
+
+// 3. CHARGEMENT HIERARCHIQUE & ANCRAGE SUR LE CORPS
+function loadAll(vehicleType, classType) {
+  const vConfig = sockets.vehicles[vehicleType];
+  const sConfig = sockets.stuff[classType];
+
+  // 1. Chargement Véhicule
+  loader.load(coffRegistry.vehicles[vehicleType], (gltfVehicle) => {
+    if (currentVehicleMesh) scene.remove(currentVehicleMesh);
+    currentVehicleMesh = gltfVehicle.scene;
+    currentVehicleMesh.scale.set(...vConfig.scale);
+    applyMeshColor(currentVehicleMesh, document.getElementById('color-vehicle').value);
+    scene.add(currentVehicleMesh);
+
+    // 2. Chargement Personnage
+    loader.load(coffRegistry.character, (gltfChar) => {
+      if (characterGroup) scene.remove(characterGroup);
+      characterGroup = gltfChar.scene;
+      
+      // Détection des os (Mains, Fessier, Jambes)
+      scanCharacterBones(characterGroup);
+
+      // Positionnement du Stickman selon le fessier/jambes
+      characterGroup.position.set(...vConfig.charOffset);
+      characterGroup.rotation.set(...vConfig.charRotation);
+      
+      applyMeshColor(characterGroup, document.getElementById('color-stickman').value);
+      applyEmojiTexture(characterGroup, document.getElementById('emoji-input').value);
+      scene.add(characterGroup);
+
+      // 3. Chargement Stuff attaché à l'os spécifique (Ex: Main Droite)
+      loader.load(coffRegistry.stuff[classType], (gltfStuff) => {
+        if (currentStuffMesh) {
+          if (currentStuffMesh.parent) currentStuffMesh.parent.remove(currentStuffMesh);
+        }
+        currentStuffMesh = gltfStuff.scene;
+        currentStuffMesh.scale.set(...sConfig.scale);
+        currentStuffMesh.position.set(...sConfig.pos);
+        applyMeshColor(currentStuffMesh, document.getElementById('color-stuff').value);
+
+        // Attachement magnétique sur la partie du corps détectée
+        const targetBone = detectedBones[sConfig.targetBodyPart];
+        if (targetBone) {
+          targetBone.add(currentStuffMesh); // Fixation directe sur l'os de la main/pied/torse
+        } else {
+          characterGroup.add(currentStuffMesh); // Fallback racine
+        }
+      });
     });
+  });
+}
 
-    window.onload = init3D;
+function update3DPreview() {
+  const name = document.getElementById('char-name').value || 'Rider';
+  const emoji = document.getElementById('emoji-input').value || '😎';
+  const vehicle = document.getElementById('vehicle-select').value;
+  const classType = document.getElementById('class-select').value;
+
+  document.getElementById('preview-name-display').innerText = name;
+  document.getElementById('preview-emoji-display').innerText = emoji;
+  document.getElementById('preview-vehicle-text').innerText = vehicle;
+  document.getElementById('preview-class-text').innerText = classType;
+
+  loadAll(vehicle, classType);
+}
+
+function switchMode(mode) {
+  document.getElementById('tab-create').classList.toggle('active', mode === 'create');
+  document.getElementById('tab-select').classList.toggle('active', mode === 'select');
+  document.getElementById('section-create').style.display = mode === 'create' ? 'flex' : 'none';
+  document.getElementById('section-select').style.display = mode === 'select' ? 'flex' : 'none';
+}
+
+function saveCharacter() {
+  const name = document.getElementById('char-name').value;
+  savedCharacters[name] = {
+    colorStickman: document.getElementById('color-stickman').value,
+    emoji: document.getElementById('emoji-input').value,
+    vehicle: document.getElementById('vehicle-select').value,
+    colorVehicle: document.getElementById('color-vehicle').value,
+    classType: document.getElementById('class-select').value,
+    colorStuff: document.getElementById('color-stuff').value
+  };
+
+  const select = document.getElementById('saved-char-select');
+  const option = document.createElement('option');
+  option.value = name;
+  option.innerText = name;
+  select.appendChild(option);
+  alert('Personnage "' + name + '" sauvegardé !');
+}
+
+function loadSavedCharacter(name) {
+  if (!name || !savedCharacters[name]) return;
+  const data = savedCharacters[name];
+  document.getElementById('color-stickman').value = data.colorStickman;
+  document.getElementById('emoji-input').value = data.emoji;
+  document.getElementById('vehicle-select').value = data.vehicle;
+  document.getElementById('color-vehicle').value = data.colorVehicle;
+  document.getElementById('class-select').value = data.classType;
+  document.getElementById('color-stuff').value = data.colorStuff;
+
+  update3DPreview();
+}
+
+// Audio HardRockTechno
+let audioCtx, isPlaying = false, audioInterval;
+function toggleHardrockTechno() {
+  const btn = document.getElementById('audio-toggle');
+  if (!isPlaying) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    isPlaying = true;
+    btn.classList.add('active');
+    btn.innerText = "🔥 Audio Playing (HardTechno)";
+    
+    let step = 0;
+    audioInterval = setInterval(() => {
+      if (step % 4 === 0) playKick();
+      if (step % 2 === 0) playRockDistortionBass(step % 8 === 0 ? 110 : 147);
+      step++;
+    }, 110);
+  } else {
+    clearInterval(audioInterval);
+    audioCtx.close();
+    isPlaying = false;
+    btn.classList.remove('active');
+    btn.innerText = "⚡ Audio HardRockTechno";
+  }
+}
+
+function playKick() {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+  gain.gain.setValueAtTime(1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.15);
+}
+
+function playRockDistortionBass(freq) {
+  const osc = audioCtx.createOscillator();
+  const dist = audioCtx.createWaveShaper();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+  const curve = new Float32Array(44100);
+  for (let i = 0; i < 44100; i++) {
+    let x = (i * 2) / 44100 - 1;
+    curve[i] = (3 + 20) * x * 20 * (Math.PI / 180) / (Math.PI + 20 * Math.abs(x));
+  }
+  dist.curve = curve;
+
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+
+  osc.connect(dist);
+  dist.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.2);
+}
+
+// Écouteurs
+document.getElementById('color-stickman').addEventListener('input', (e) => applyMeshColor(characterGroup, e.target.value));
+document.getElementById('color-vehicle').addEventListener('input', (e) => applyMeshColor(currentVehicleMesh, e.target.value));
+document.getElementById('color-stuff').addEventListener('input', (e) => applyMeshColor(currentStuffMesh, e.target.value));
+
+document.getElementById('char-name').addEventListener('input', update3DPreview);
+document.getElementById('emoji-input').addEventListener('input', update3DPreview);
+document.getElementById('vehicle-select').addEventListener('change', update3DPreview);
+document.getElementById('class-select').addEventListener('change', update3DPreview);
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  if (characterGroup) characterGroup.rotation.y += 0.003;
+  if (currentVehicleMesh) currentVehicleMesh.rotation.y += 0.003;
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  const container = document.getElementById('viewport-3d');
+  camera.aspect = container.clientWidth / container.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(container.clientWidth, container.clientHeight);
+});
+
+window.onload = init3D;
+
   </script>
 </body>
 </html>
