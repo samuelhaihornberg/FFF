@@ -13,7 +13,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Impact', 'Segoe UI', sans-serif; user-select: none; }
     body { background-color: #050508; color: #fff; display: flex; height: 100vh; overflow: hidden; }
 
-    #viewport-3d { flex: 1; height: 100%; position: relative; background: radial-gradient(circle, #101424 0%, #050508 100%); }
+    #viewport-3d { flex: 1; height: 100%; position: relative; background: radial-gradient(circle, #101424 0%, #050508 100%); touch-action: none; }
     #canvas3d { width: 100%; height: 100%; display: block; }
 
     #hud-overlay { position: absolute; top: 20px; left: 20px; pointer-events: none; display: flex; flex-direction: column; gap: 10px; }
@@ -39,7 +39,6 @@
     .audio-btn { background: #ff0055; border: none; color: #fff; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; box-shadow: 0 0 10px rgba(255,0,85,0.5); }
     .audio-btn.active { background: #00e5ff; color: #000; box-shadow: 0 0 10px #00e5ff; }
 
-    /* Modéliseur 3D de Poche Admin */
     #admin-modeler-box { background: rgba(255, 0, 85, 0.08); border: 1px solid #ff0055; padding: 12px; border-radius: 6px; display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
     .slider-row { display: flex; flex-direction: column; gap: 2px; }
     .slider-row label { font-size: 0.7rem; color: #ff0055; font-family: sans-serif; }
@@ -47,17 +46,42 @@
 
     .btn-launch { background: linear-gradient(90deg, #ff0055, #ffaa00); border: none; color: #fff; padding: 14px; border-radius: 4px; font-weight: bold; font-size: 1.2rem; cursor: pointer; margin-top: auto; text-transform: uppercase; font-style: italic; box-shadow: 0 0 20px rgba(255,0,85,0.6); }
     .btn-launch:hover { filter: brightness(1.2); }
-#selection-box {
-    position: absolute;
-    pointer-events: none; /* Important : permet de cliquer à travers */
-}
+
+    #selection-box {
+      position: absolute;
+      pointer-events: none;
+      border: 2px solid #00e5ff;
+      background: rgba(0, 229, 255, 0.2);
+      display: none;
+      z-index: 100;
+      box-shadow: 0 0 10px #00e5ff;
+    }
+
+    #hold-indicator {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border: 3px solid #ff0055;
+      border-top-color: transparent;
+      border-radius: 50%;
+      display: none;
+      pointer-events: none;
+      z-index: 101;
+      transform: translate(-50%, -50%);
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
   </style>
 </head>
 <body>
 
   <div id="viewport-3d">
-    <!-- Couche invisible pour dessiner le rectangle -->
-<div id="selection-box" style="position: absolute; border: 2px solid #00e5ff; background: rgba(0, 229, 255, 0.2); display: none; z-index: 100;"></div>
+    <div id="selection-box"></div>
+    <div id="hold-indicator"></div>
 
     <div id="hud-overlay">
       <img id="logo" src="https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/images%20%26%20videos/1786846892107.png" alt="FFF Logo">
@@ -213,7 +237,6 @@
   <script>
     const ADMIN_SECRET = "admin50124801080";
     let isAdminUnlocked = false;
-    let activeTarget = null;
 
     const coffRegistry = {
       character: 'https://raw.githubusercontent.com/samuelhaihornberg/roll-punch/41fa9ca2723bf507b70a789976fa540ea431f1bf/Personnages/Model%20emojistick.glb',
@@ -291,6 +314,7 @@
       loader = new THREE.GLTFLoader();
 
       loadAll('Velo', 'Fighter');
+      initPointerSelection();
       animate();
     }
 
@@ -422,8 +446,6 @@
       }
     }
 
-    // --- CONTROLLER DE MODÉLISATION 3D ---
-
     function getActiveTarget() {
       const modelerTarget = document.getElementById('modeler-target').value;
       const boneKey = document.getElementById('bone-target').value;
@@ -459,7 +481,6 @@
       document.getElementById('mod-scale').value = targetObj.scale.x.toFixed(2);
     }
 
-    // Écouteurs des Sliders
     document.getElementById('mod-pos-y').addEventListener('input', (e) => applyModelerTransform('posY', parseFloat(e.target.value)));
     document.getElementById('mod-pos-z').addEventListener('input', (e) => applyModelerTransform('posZ', parseFloat(e.target.value)));
     document.getElementById('mod-pos-x').addEventListener('input', (e) => applyModelerTransform('posX', parseFloat(e.target.value)));
@@ -578,6 +599,112 @@
     document.getElementById('vehicle-select').addEventListener('change', update3DPreview);
     document.getElementById('class-select').addEventListener('change', update3DPreview);
 
+    // --- GESTIONNAIRE UNIFIÉ SOURIS / STYLET / TOUCHSCREEN ---
+    function initPointerSelection() {
+      const viewport = document.getElementById('viewport-3d');
+      const selectionBox = document.getElementById('selection-box');
+      const indicator = document.getElementById('hold-indicator');
+
+      let holdTimer = null;
+      let isBoxSelecting = false;
+      let startX = 0, startY = 0;
+      const MOVE_THRESHOLD = 8; // Marge de pixels autorisée avant d'annuler la pression longue
+
+      viewport.addEventListener('pointerdown', (e) => {
+        // Enregistrer la position initiale
+        startX = e.clientX;
+        startY = e.clientY;
+        isBoxSelecting = false;
+
+        // Positionner l'indicateur visuel de maintien (2 sec)
+        indicator.style.left = startX + 'px';
+        indicator.style.top = startY + 'px';
+        indicator.style.display = 'block';
+
+        // Lancer le timer de 2000 ms (2 secondes)
+        holdTimer = setTimeout(() => {
+          isBoxSelecting = true;
+          controls.enabled = false; // Désactiver la navigation OrbitControls
+          indicator.style.display = 'none';
+
+          // Initialiser la boîte de sélection
+          selectionBox.style.left = startX + 'px';
+          selectionBox.style.top = startY + 'px';
+          selectionBox.style.width = '0px';
+          selectionBox.style.height = '0px';
+          selectionBox.style.display = 'block';
+        }, 2000);
+      });
+
+      viewport.addEventListener('pointermove', (e) => {
+        // Si l'utilisateur bouge avant les 2 secondes, annuler la sélection et laisser OrbitControls naviguer
+        if (!isBoxSelecting && holdTimer) {
+          const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
+          if (dist > MOVE_THRESHOLD) {
+            clearTimeout(holdTimer);
+            holdTimer = null;
+            indicator.style.display = 'none';
+          }
+        }
+
+        // Si le mode sélection est actif, redimensionner la boîte de sélection
+        if (isBoxSelecting) {
+          const currentX = e.clientX;
+          const currentY = e.clientY;
+          const left = Math.min(currentX, startX);
+          const top = Math.min(currentY, startY);
+          const width = Math.abs(currentX - startX);
+          const height = Math.abs(currentY - startY);
+
+          selectionBox.style.left = left + 'px';
+          selectionBox.style.top = top + 'px';
+          selectionBox.style.width = width + 'px';
+          selectionBox.style.height = height + 'px';
+        }
+      });
+
+      const endSelection = (e) => {
+        if (holdTimer) {
+          clearTimeout(holdTimer);
+          holdTimer = null;
+        }
+        indicator.style.display = 'none';
+
+        if (isBoxSelecting) {
+          isBoxSelecting = false;
+          controls.enabled = true; // Réactiver la navigation 3D
+          selectionBox.style.display = 'none';
+
+          const rect = {
+            left: parseInt(selectionBox.style.left) || 0,
+            top: parseInt(selectionBox.style.top) || 0,
+            right: (parseInt(selectionBox.style.left) || 0) + (parseInt(selectionBox.style.width) || 0),
+            bottom: (parseInt(selectionBox.style.top) || 0) + (parseInt(selectionBox.style.height) || 0)
+          };
+
+          const viewRect = viewport.getBoundingClientRect();
+
+          // Chercher quel bone ou objet se trouve dans le rectangle tracé
+          for (let boneKey in detectedBones) {
+            const bone = detectedBones[boneKey];
+            const vector = bone.getWorldPosition(new THREE.Vector3()).project(camera);
+
+            const screenX = ((vector.x + 1) / 2) * viewRect.width + viewRect.left;
+            const screenY = ((-vector.y + 1) / 2) * viewRect.height + viewRect.top;
+
+            if (screenX >= rect.left && screenX <= rect.right && screenY >= rect.top && screenY <= rect.bottom) {
+              document.getElementById('bone-target').value = boneKey;
+              updateBoneUI();
+              break;
+            }
+          }
+        }
+      };
+
+      viewport.addEventListener('pointerup', endSelection);
+      viewport.addEventListener('pointercancel', endSelection);
+    }
+
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
@@ -594,63 +721,7 @@
     });
 
     window.onload = init3D;
-
-    let isSelecting = false;
-let startX, startY;
-const selectionBox = document.getElementById('selection-box');
-
-// Activer le mode sélection avec la touche 'S' ou via une logique de ton choix
-// Pour l'instant, on détecte le mousedown sur le viewport
-document.getElementById('viewport-3d').addEventListener('mousedown', (e) => {
-    isSelecting = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    selectionBox.style.left = startX + 'px';
-    selectionBox.style.top = startY + 'px';
-    selectionBox.style.width = '0px';
-    selectionBox.style.height = '0px';
-    selectionBox.style.display = 'block';
-});
-
-document.addEventListener('mousemove', (e) => {
-    if (!isSelecting) return;
-    const currentX = e.clientX;
-    const currentY = e.clientY;
-    selectionBox.style.width = Math.abs(currentX - startX) + 'px';
-    selectionBox.style.height = Math.abs(currentY - startY) + 'px';
-    selectionBox.style.left = Math.min(currentX, startX) + 'px';
-    selectionBox.style.top = Math.min(currentY, startY) + 'px';
-});
-
-document.addEventListener('mouseup', (e) => {
-    if (!isSelecting) return;
-    isSelecting = false;
-    selectionBox.style.display = 'none';
-    
-    // Déterminer la zone du rectangle
-    const rect = {
-        left: parseInt(selectionBox.style.left),
-        top: parseInt(selectionBox.style.top),
-        right: parseInt(selectionBox.style.left) + parseInt(selectionBox.style.width),
-        bottom: parseInt(selectionBox.style.top) + parseInt(selectionBox.style.height)
-    };
-
-    // Vérifier quel "bone" est dans cette zone
-    for (let boneKey in detectedBones) {
-        const bone = detectedBones[boneKey];
-        // Projeter la position 3D en 2D (écran)
-        const vector = bone.getWorldPosition(new THREE.Vector3()).project(camera);
-        const x = (vector.x + 1) / 2 * window.innerWidth;
-        const y = -(vector.y - 1) / 2 * window.innerHeight;
-
-        if (x > rect.left && x < rect.right && y > rect.top && y < rect.bottom) {
-            document.getElementById('bone-target').value = boneKey;
-            updateBoneUI();
-            break; // On sélectionne le premier trouvé
-        }
-    }
-});
-
   </script>
 </body>
 </html>
+
