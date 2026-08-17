@@ -3,93 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FFF - Launcher Garage</title>
+  <title>FFF - Cyber Launcher 3D Playground</title>
   
-  <!-- Libs 3D -->
+  <!-- Moteur 3D Three.js & Loaders -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #0d0f12; color: #fff; display: flex; height: 100vh; overflow: hidden; }
-    
-    /* Zone 3D */
-    #viewport { flex: 1; height: 100%; position: relative; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Impact', 'Segoe UI', sans-serif; user-select: none; }
+    body { background-color: #050508; color: #fff; display: flex; height: 100vh; overflow: hidden; }
+
+    /* Environment Viewer 3D */
+    #viewport-3d { flex: 1; height: 100%; position: relative; background: radial-gradient(circle, #101424 0%, #050508 100%); }
     #canvas3d { width: 100%; height: 100%; display: block; }
 
-    /* HUD & Logo */
-    #logo { position: absolute; top: 15px; left: 15px; height: 60px; filter: drop-shadow(0 0 8px rgba(0,229,255,0.5)); }
+    /* HUD, Logo & Branding */
+    #hud-overlay { position: absolute; top: 20px; left: 20px; pointer-events: none; display: flex; flex-direction: column; gap: 10px; }
+    #logo { height: 75px; filter: drop-shadow(0 0 12px #00e5ff); }
+    .badge { background: rgba(255, 0, 85, 0.8); padding: 4px 12px; border-radius: 4px; font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; width: fit-content; box-shadow: 0 0 10px #ff0055; }
 
-    /* Panneau d'option / Garage */
-    #garage-panel { width: 340px; background: rgba(18, 22, 28, 0.95); border-left: 2px solid #00e5ff; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-    h2 { color: #00e5ff; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+    /* Launcher / Garage Panel */
+    #launcher-panel { width: 360px; background: rgba(10, 12, 18, 0.95); border-left: 3px solid #ff0055; padding: 25px; display: flex; flex-direction: column; gap: 18px; box-shadow: -10px 0 30px rgba(0,0,0,0.8); z-index: 10; }
+    h2 { color: #00e5ff; font-size: 1.5rem; text-transform: uppercase; font-style: italic; letter-spacing: 1px; text-shadow: 0 0 10px #00e5ff; }
 
-    .group { display: flex; flex-direction: column; gap: 8px; }
-    label { font-size: 0.85rem; color: #aaa; font-weight: bold; }
-    select, input[type="text"], input[type="color"] { background: #1a202c; border: 1px solid #303e4d; color: #fff; padding: 8px; border-radius: 6px; width: 100%; outline: none; }
-    input[type="color"] { height: 40px; cursor: pointer; padding: 2px; }
+    .control-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.85rem; color: #a0aab8; text-transform: uppercase; letter-spacing: 1px; font-family: sans-serif; font-weight: bold; }
+    select, input[type="text"], input[type="color"] { background: #121620; border: 1px solid #283245; color: #fff; padding: 10px; border-radius: 4px; outline: none; font-size: 0.91rem; }
+    input[type="color"] { height: 42px; cursor: pointer; padding: 2px; }
 
-    .btn-launch { background: linear-gradient(45deg, #00e5ff, #0077ff); border: none; color: #fff; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: auto; text-transform: uppercase; box-shadow: 0 0 12px rgba(0,229,255,0.4); }
-    .btn-launch:hover { transform: translateY(-2px); box-shadow: 0 0 18px rgba(0,229,255,0.7); }
+    /* Controls Sound & Action */
+    .audio-btn { background: #ff0055; border: none; color: #fff; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 1rem; box-shadow: 0 0 15px rgba(255,0,85,0.6); transition: 0.2s; }
+    .audio-btn:hover { background: #ff2a75; transform: scale(1.02); }
+    .audio-btn.active { background: #00e5ff; color: #000; box-shadow: 0 0 15px #00e5ff; }
+
+    .btn-launch { background: linear-gradient(90deg, #ff0055, #ffaa00); border: none; color: #fff; padding: 16px; border-radius: 4px; font-weight: bold; font-size: 1.3rem; cursor: pointer; margin-top: auto; text-transform: uppercase; font-style: italic; box-shadow: 0 0 20px rgba(255,0,85,0.6); }
+    .btn-launch:hover { filter: brightness(1.2); transform: translateY(-2px); }
   </style>
 </head>
 <body>
 
-  <!-- Structure de Données COFF Imbriquée -->
-  <CoffSetup id="coff-data">
-    <CharacterSetup>
-      <Visual_Avatar>
-        <Color_Stickman>#00ffff</Color_Stickman>
-        <Head_Emoji>😎</Head_Emoji>
-      </Visual_Avatar>
-      <Vehicle>
-        <Type>Velo</Type>
-        <Color_Vehicle>#ff0055</Color_Vehicle>
-      </Vehicle>
-      <Class_Rules>
-        <Class_Selected>Fighter</Class_Selected>
-        <Color_Stuff>#ffaa00</Color_Stuff>
-      </Class_Rules>
-    </CharacterSetup>
+  <!-- Data COFF isolée du DOM pour corriger l'affichage du texte brut -->
+  <script type="text/coff" id="coff-data">
+    <CoffSetup>
+      <CharacterSetup>
+        <Visual_Avatar>
+          <Color_Stickman>#00ffff</Color_Stickman>
+          <Head_Emoji>😎</Head_Emoji>
+        </Visual_Avatar>
+        <Vehicle>
+          <Type>Velo</Type>
+          <Color_Vehicle>#ff0055</Color_Vehicle>
+        </Vehicle>
+        <Class_Rules>
+          <Class_Selected>Fighter</Class_Selected>
+          <Color_Stuff>#ffaa00</Color_Stuff>
+        </Class_Rules>
+      </CharacterSetup>
+    </CoffSetup>
+  </script>
 
-    <Asset_Registry>
-      <Logo_URL>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/images%20%26%20videos/1786846892107.png</Logo_URL>
-      <Model_Stickman>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Personnages/Model%20emojistick.glb</Model_Stickman>
-      <Vehicles>
-        <Rollers>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Rollers%20basic.glb</Rollers>
-        <Velo>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Velo%20basic.glb</Velo>
-        <Skateboard>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Skateboard%20basic.glb</Skateboard>
-      </Vehicles>
-      <Stuff>
-        <Fighter>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/gant%20choose.glb</Fighter>
-        <Soldat>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/Revolver.glb</Soldat>
-        <Ingenieur>https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/Chaine%20electrique.glb</Ingenieur>
-      </Stuff>
-    </Asset_Registry>
-  </CoffSetup>
-
-  <!-- Rendu 3D Viewport -->
-  <div id="viewport">
-    <img id="logo" src="https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/images%20%26%20videos/1786846892107.png" alt="FFF Logo">
+  <!-- Viewer 3D Playground -->
+  <div id="viewport-3d">
+    <div id="hud-overlay">
+      <img id="logo" src="https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/images%20%26%20videos/1786846892107.png" alt="FFF Logo">
+      <div class="badge">3D Engine Active</div>
+    </div>
     <canvas id="canvas3d"></canvas>
   </div>
 
-  <!-- Interface du Garage -->
-  <div id="garage-panel">
-    <h2>Garage & Custom</h2>
+  <!-- Launcher / Home Page Sidebar -->
+  <div id="launcher-panel">
+    <h2>Garage & Custom 3D</h2>
 
-    <div class="group">
-      <label>Couleur du Stickman</label>
+    <button id="audio-toggle" class="audio-btn" onclick="toggleHardrockTechno()">⚡ Audio HardRockTechno</button>
+
+    <div class="control-group">
+      <label>Couleur Stickman</label>
       <input type="color" id="color-stickman" value="#00ffff">
     </div>
 
-    <div class="group">
+    <div class="control-group">
       <label>Tête (Emoji)</label>
       <input type="text" id="emoji-input" value="😎" maxlength="2">
     </div>
 
-    <div class="group">
+    <div class="control-group">
       <label>Véhicule</label>
       <select id="vehicle-select">
         <option value="Velo">Vélo Basic</option>
@@ -98,30 +97,30 @@
       </select>
     </div>
 
-    <div class="group">
-      <label>Couleur du Véhicule</label>
+    <div class="control-group">
+      <label>Couleur Véhicule</label>
       <input type="color" id="color-vehicle" value="#ff0055">
     </div>
 
-    <div class="group">
-      <label>Classe & Équipement</label>
+    <div class="control-group">
+      <label>Classe & Equipment</label>
       <select id="class-select">
-        <option value="Fighter">Fighter (Gants & Chaussures)</option>
+        <option value="Fighter">Fighter (Gants/Chaussures)</option>
         <option value="Soldat">Soldat (Revolver)</option>
-        <option value="Ingenieur">Ingénieur (Chaîne Électrique)</option>
+        <option value="Ingenieur">Ingénieur (Chaîne Élec)</option>
       </select>
     </div>
 
-    <div class="group">
-      <label>Couleur du Stuff</label>
+    <div class="control-group">
+      <label>Couleur Stuff</label>
       <input type="color" id="color-stuff" value="#ffaa00">
     </div>
 
-    <button class="btn-launch" onclick="launchGame()">Lancer la Course</button>
+    <button class="btn-launch" onclick="alert('Lancement du jeu Fight For Fast !')">START FIGHT</button>
   </div>
 
   <script>
-    // System Engine Three.js & Coff Parsing
+    // Asset Registry (Permalinks Raw)
     const coffRegistry = {
       character: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Personnages/Model%20emojistick.glb',
       vehicles: {
@@ -136,16 +135,16 @@
       }
     };
 
+    // Configuration du Rendu 3D
     let scene, camera, renderer, controls, loader;
     let currentCharacterMesh, currentVehicleMesh, currentStuffMesh;
 
     function init3D() {
-      const container = document.getElementById('viewport');
+      const container = document.getElementById('viewport-3d');
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0d0f12);
 
       camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-      camera.position.set(0, 1.5, 3.5);
+      camera.position.set(0, 1.8, 4);
 
       renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas3d'), antialias: true });
       renderer.setSize(container.clientWidth, container.clientHeight);
@@ -155,22 +154,25 @@
       controls.enableDamping = true;
       controls.target.set(0, 0.8, 0);
 
-      // Lumières
-      const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+      // Éclairage Cyberpunk
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
       scene.add(ambientLight);
 
-      const dirLight = new THREE.DirectionalLight(0x00e5ff, 1.5);
-      dirLight.position.set(5, 10, 7);
-      scene.add(dirLight);
+      const light1 = new THREE.PointLight(0x00e5ff, 2, 10);
+      light1.position.set(3, 3, 3);
+      scene.add(light1);
+
+      const light2 = new THREE.PointLight(0xff0055, 2, 10);
+      light2.position.set(-3, 2, -3);
+      scene.add(light2);
+
+      // Sol Neon Grid
+      const grid = new THREE.GridHelper(12, 24, 0xff0055, 0x00e5ff);
+      scene.add(grid);
 
       loader = new THREE.GLTFLoader();
 
-      // Sol Grille Garage
-      const grid = new THREE.GridHelper(10, 20, 0x00e5ff, 0x222222);
-      grid.position.y = 0;
-      scene.add(grid);
-
-      // Chargement Initial
+      // Chargement des objets GLB
       loadCharacter();
       loadVehicle('Velo');
       loadStuff('Fighter');
@@ -202,7 +204,6 @@
       loader.load(coffRegistry.vehicles[type], (gltf) => {
         if (currentVehicleMesh) scene.remove(currentVehicleMesh);
         currentVehicleMesh = gltf.scene;
-        currentVehicleMesh.position.set(0, 0, 0);
         applyMeshColor(currentVehicleMesh, document.getElementById('color-vehicle').value);
         scene.add(currentVehicleMesh);
       });
@@ -218,34 +219,97 @@
       });
     }
 
-    // Événements d'IHM & Mise à jour instantanée
+    // Événements UI
     document.getElementById('color-stickman').addEventListener('input', (e) => applyMeshColor(currentCharacterMesh, e.target.value));
     document.getElementById('color-vehicle').addEventListener('input', (e) => applyMeshColor(currentVehicleMesh, e.target.value));
     document.getElementById('color-stuff').addEventListener('input', (e) => applyMeshColor(currentStuffMesh, e.target.value));
-
     document.getElementById('vehicle-select').addEventListener('change', (e) => loadVehicle(e.target.value));
     document.getElementById('class-select').addEventListener('change', (e) => loadStuff(e.target.value));
 
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
+      if (currentCharacterMesh) currentCharacterMesh.rotation.y += 0.005;
       renderer.render(scene, camera);
     }
 
+    // Generator Sound Audio Synth: HardRockTechno
+    let audioCtx, isPlaying = false, audioInterval;
+
+    function toggleHardrockTechno() {
+      const btn = document.getElementById('audio-toggle');
+      if (!isPlaying) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        isPlaying = true;
+        btn.classList.add('active');
+        btn.innerText = "🔥 Audio Playing (HardTechno)";
+        
+        let step = 0;
+        audioInterval = setInterval(() => {
+          // Kick Techno 135 BPM
+          if (step % 4 === 0) playKick();
+          // Rock Distortion Bass Synth
+          if (step % 2 === 0) playRockDistortionBass(step % 8 === 0 ? 110 : 147);
+          step++;
+        }, 110);
+      } else {
+        clearInterval(audioInterval);
+        audioCtx.close();
+        isPlaying = false;
+        btn.classList.remove('active');
+        btn.innerText = "⚡ Audio HardRockTechno";
+      }
+    }
+
+    function playKick() {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.15);
+    }
+
+    function playRockDistortionBass(freq) {
+      const osc = audioCtx.createOscillator();
+      const dist = audioCtx.createWaveShaper();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+      // Courbe de distorsion Hard-Rock
+      const curve = new Float32Array(44100);
+      for (let i = 0; i < 44100; i++) {
+        let x = (i * 2) / 44100 - 1;
+        curve[i] = (3 + 20) * x * 20 * (Math.PI / 180) / (Math.PI + 20 * Math.abs(x));
+      }
+      dist.curve = curve;
+
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+
+      osc.connect(dist);
+      dist.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.2);
+    }
+
     window.addEventListener('resize', () => {
-      const container = document.getElementById('viewport');
+      const container = document.getElementById('viewport-3d');
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
     });
 
-    function launchGame() {
-      alert("Lancement de la partie Fight for Fast avec la configuration Coff sélectionnée !");
-    }
-
     window.onload = init3D;
   </script>
 </body>
 </html>
+
 
 
