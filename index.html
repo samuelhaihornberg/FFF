@@ -77,6 +77,20 @@
     </div>
 
     <!-- Section Création -->
+
+<!-- Bloc Preview Recapitulatif -->
+<div id="character-preview-card" style="background: rgba(0, 229, 255, 0.08); border: 1px dashed #00e5ff; padding: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <span id="preview-emoji-display" style="font-size: 1.5rem;">😎</span>
+    <span id="preview-name-display" style="font-weight: bold; color: #00e5ff;">Rider_01</span>
+  </div>
+  <div style="font-size: 0.8rem; color: #aaa; font-family: sans-serif;">
+    <p>🏎️ Véhicule: <strong id="preview-vehicle-text" style="color: #fff;">Velo</strong></p>
+    <p>⚔️ Classe: <strong id="preview-class-text" style="color: #fff;">Fighter</strong></p>
+  </div>
+</div>
+
+    
     <div id="section-create" style="display: flex; flex-direction: column; gap: 12px;">
       <div class="control-group">
         <label>Nom du Personnage</label>
@@ -313,6 +327,28 @@
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
     });
+// Fonction d'actualisation de la preview UI & 3D
+function update3DPreview() {
+  const name = document.getElementById('char-name').value || 'Rider';
+  const emoji = document.getElementById('emoji-input').value || '😎';
+  const vehicle = document.getElementById('vehicle-select').value;
+  const classType = document.getElementById('class-select').value;
+
+  // Mise à jour du récapitulatif visuel dans le panneau
+  document.getElementById('preview-name-display').innerText = name;
+  document.getElementById('preview-emoji-display').innerText = emoji;
+  document.getElementById('preview-vehicle-text').innerText = vehicle;
+  document.getElementById('preview-class-text').innerText = classType;
+
+  // Rechargement et ré-alignement magnétique du modèle 3D
+  loadAll(vehicle, classType);
+}
+
+// Écouteurs d'événements pour mise à jour instantanée en direct
+document.getElementById('char-name').addEventListener('input', update3DPreview);
+document.getElementById('emoji-input').addEventListener('input', update3DPreview);
+document.getElementById('vehicle-select').addEventListener('change', update3DPreview);
+document.getElementById('class-select').addEventListener('change', update3DPreview);
 
     window.onload = init3D;
   </script>
