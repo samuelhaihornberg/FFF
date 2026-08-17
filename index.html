@@ -188,6 +188,20 @@
 
     <button class="btn-launch" onclick="alert('Lancement du jeu Fight For Fast !')">START FIGHT</button>
   </div>
+  <div class="control-group">
+  <label>Partie du corps à sculpter</label>
+  <select id="bone-target" onchange="updateBoneUI()">
+    <option value="none">-- Choisir une partie --</option>
+    <option value="head">Tête</option>
+    <option value="chest">Torse</option>
+    <option value="pelvis">Bassin</option>
+    <option value="handRight">Main Droite</option>
+    <option value="handLeft">Main Gauche</option>
+    <option value="footRight">Pied Droit</option>
+    <option value="footLeft">Pied Gauche</option>
+  </select>
+</div>
+
 
   <script>
     const ADMIN_SECRET = "admin50124801080";
@@ -407,17 +421,68 @@
     document.getElementById('mod-rot-x').addEventListener('input', (e) => applyModelerTransform('rotX', parseFloat(e.target.value)));
     document.getElementById('mod-scale').addEventListener('input', (e) => applyModelerTransform('scale', parseFloat(e.target.value)));
 
-    function applyModelerTransform(type, val) {
-      const targetType = document.getElementById('modeler-target').value;
-      let obj = targetType === 'stickman' ? characterGroup : (targetType === 'vehicle' ? currentVehicleMesh : currentStuffMesh);
-      if (!obj) return;
+// Mise à jour de la cible : si "none" on modifie le groupe, sinon un os précis
+function applyModelerTransform(type, val) {
+  const modelerTarget = document.getElementById('modeler-target').value; // 'stickman', 'vehicle', 'stuff'
+  const boneKey = document.getElementById('bone-target').value; // 'head', 'handRight', etc.
+  
+  let targetObj;
 
-      if (type === 'posY') obj.position.y = val;
-      if (type === 'posZ') obj.position.z = val;
-      if (type === 'posX') obj.position.x = val;
-      if (type === 'rotX') obj.rotation.x = val;
-      if (type === 'scale') obj.scale.set(val, val, val);
-    }
+  // Priorité : Si une partie du corps est sélectionnée, on modifie l'os
+  if (boneKey !== 'none' && detectedBones[boneKey]) {
+    targetObj = detectedBones[boneKey];
+  } else {
+    // Sinon on modifie l'objet global
+    targetObj = modelerTarget === 'stickman' ? characterGroup : (modelerTarget === 'vehicle' ? currentVehicleMesh : currentStuffMesh);
+  }
+
+  if (!targetObj) return;
+
+  if (type === 'posY') targetObj.position.y = val;
+  if (type === 'posZ') targetObj.position.z = val;
+  if (type === 'posX') targetObj.position.x = val;
+  if (type === 'rotX') targetObj.rotation.x = val;
+  if (type === 'scale') targetObj.scale.set(val, val, val);
+}
+
+// Pour synchroniser les sliders avec la valeur actuelle de la partie du corps sélectionnée
+function updateBoneUI() {
+  const boneKey = document.getElementById('bone-target').value;
+  if (boneKey !== 'none' && detectedBones[boneKey]) {
+    const bone = detectedBones[boneKey];
+    document.getElementById('mod-pos-y').value = bone.position.y;
+    document.getElementById('mod-scale').value = bone.scale.x;
+    // Ajoute ici le reste des synchronisations si besoin
+  }
+}
+function updateBoneUI() {
+  const modelerTarget = document.getElementById('modeler-target').value; // 'stickman', 'vehicle', 'stuff'
+  const boneKey = document.getElementById('bone-target').value; // 'head', 'handRight', etc.
+  
+  // 1. Déterminer la cible (si un os est sélectionné, on prend l'os, sinon l'objet entier)
+  let targetObj;
+  if (boneKey !== 'none' && detectedBones[boneKey]) {
+    targetObj = detectedBones[boneKey];
+  } else {
+    targetObj = modelerTarget === 'stickman' ? characterGroup : (modelerTarget === 'vehicle' ? currentVehicleMesh : currentStuffMesh);
+  }
+
+  // 2. Si l'objet n'est pas encore chargé ou introuvable, on arrête
+  if (!targetObj) return;
+
+  // 3. Synchronisation totale des sliders avec les valeurs actuelles de l'objet/os
+  // On utilise parseFloat/toFixed pour éviter les erreurs de précision
+  document.getElementById('mod-pos-y').value = targetObj.position.y.toFixed(2);
+  document.getElementById('mod-pos-z').value = targetObj.position.z.toFixed(2);
+  document.getElementById('mod-pos-x').value = targetObj.position.x.toFixed(2);
+  
+  // Note: rotation.x est en radians dans Three.js, le slider gère cette valeur
+  document.getElementById('mod-rot-x').value = targetObj.rotation.x.toFixed(2);
+  
+  // On prend l'échelle X (en supposant une échelle uniforme)
+  document.getElementById('mod-scale').value = targetObj.scale.x.toFixed(2);
+}
+
 
     function copySocketConfig() {
       if (!characterGroup) return;
