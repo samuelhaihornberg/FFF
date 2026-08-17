@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FFF - Cyber Launcher & Admin 3D Modeler</title>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Impact', 'Segoe UI', sans-serif; user-select: none; }
+    body { background-color: #050508; color: #fff; display: flex; height: 100vh; overflow: hidden; }
+
+    #viewport-3d { flex: 1; height: 100%; position: relative; background: radial-gradient(circle, #101424 0%, #050508 100%); touch-action: none; }
+    #canvas3d { width: 100%; height: 100%; display: block; }
+
+    #hud-overlay { position: absolute; top: 20px; left: 20px; pointer-events: none; display: flex; flex-direction: column; gap: 10px; z-index: 10; }
+    #logo { height: 75px; filter: drop-shadow(0 0 12px #00e5ff); }
+    .badge { background: rgba(255, 0, 85, 0.8); padding: 4px 12px; border-radius: 4px; font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; width: fit-content; box-shadow: 0 0 10px #ff0055; }
+
+    /* Barre d'outils : Masquée par défaut (display: none) */
+    #viewport-toolbar {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      display: none; /* Visible uniquement en mode Admin */
+      gap: 10px;
+      background: rgba(10, 12, 18, 0.9);
+      border: 1px solid #ff0055;
+      padding: 8px;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+      z-index: 20;
+    }
+
+    .tool-btn {
+      background: #121620;
+      border: 1px solid #283245;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .tool-btn:hover { background: #1c2333; }
+    .tool-btn.active {
+      background: #ff0055;
+      color: #fff;
+      border-color: #ff0055;
+      box-shadow: 0 0 10px #ff0055;
+      font-weight: bold;
+    }
+
+    #launcher-panel { width: 380px; background: rgba(10, 12, 18, 0.95); border-left: 3px solid #ff0055; padding: 25px; display: flex; flex-direction: column; gap: 12px; box-shadow: -10px 0 30px rgba(0,0,0,0.8); z-index: 10; overflow-y: auto; }
+    h2 { color: #00e5ff; font-size: 1.4rem; text-transform: uppercase; font-style: italic; letter-spacing: 1px; text-shadow: 0 0 10px #00e5ff; }
+
+    .tabs { display: flex; gap: 6px; border-bottom: 2px solid #283245; padding-bottom: 8px; }
+    .tab-btn { flex: 1; background: #121620; border: 1px solid #283245; color: #a0aab8; padding: 6px; cursor: pointer; text-align: center; border-radius: 4px; font-weight: bold; font-size: 0.8rem; }
+    .tab-btn.active { background: #00e5ff; color: #000; border-color: #00e5ff; box-shadow: 0 0 10px #00e5ff; }
+    .tab-btn.admin-tab { background: #ff0055; color: #fff; border-color: #ff0055; }
+
+    .control-group { display: flex; flex-direction: column; gap: 4px; }
+    label { font-size: 0.75rem; color: #a0aab8; text-transform: uppercase; letter-spacing: 1px; font-family: sans-serif; font-weight: bold; }
+    select, input[type="text"], input[type="password"], input[type="color"] { background: #121620; border: 1px solid #283245; color: #fff; padding: 8px; border-radius: 4px; outline: none; font-size: 0.85rem; }
+    input[type="color"] { height: 36px; cursor: pointer; padding: 2px; }
+
+    .action-btn { background: #00e5ff; border: none; color: #000; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; box-shadow: 0 0 10px rgba(0,229,255,0.4); }
+    .action-btn:hover { background: #33ebff; transform: scale(1.02); }
+
+    .audio-btn { background: #ff0055; border: none; color: #fff; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; box-shadow: 0 0 10px rgba(255,0,85,0.5); }
+    .audio-btn.active { background: #00e5ff; color: #000; box-shadow: 0 0 10px #00e5ff; }
+
+    #admin-modeler-box { background: rgba(255, 0, 85, 0.08); border: 1px solid #ff0055; padding: 12px; border-radius: 6px; display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
+    .slider-row { display: flex; flex-direction: column; gap: 2px; }
+    .slider-row label { font-size: 0.7rem; color: #ff0055; font-family: sans-serif; }
+    input[type="range"] { width: 100%; accent-color: #ff0055; cursor: pointer; }
+
+    .btn-launch { background: linear-gradient(90deg, #ff0055, #ffaa00); border: none; color: #fff; padding: 14px; border-radius: 4px; font-weight: bold; font-size: 1.2rem; cursor: pointer; margin-top: auto; text-transform: uppercase; font-style: italic; box-shadow: 0 0 20px rgba(255,0,85,0.6); }
+    .btn-launch:hover { filter: brightness(1.2); }
+
+    #selection-box {
+      position: absolute;
+      pointer-events: none;
+      border: 2px solid #ff0055;
+      background: rgba(255, 0, 85, 0.2);
+      display: none;
+      z-index: 100;
+      box-shadow: 0 0 10px #ff0055;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="viewport-3d">
+    <div id="selection-box"></div>
+
+    <div id="hud-overlay">
+      <img id="logo" src="https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/images%20%26%20videos/1786846892107.png" alt="FFF Logo">
+      <div class="badge" id="mode-badge">Launcher User</div>
+    </div>
+
+    <!-- Barre d'outils Flottante (Uniquement Admin) -->
+    <div id="viewport-toolbar">
+      <button id="tool-nav" class="tool-btn active" onclick="setToolMode('nav')">
+        ✋ <span>Naviguer</span>
+      </button>
+      <button id="tool-select" class="tool-btn" onclick="setToolMode('select')">
+        🖱️ <span>Sélecteur Bone</span>
+      </button>
+    </div>
+
+    <canvas id="canvas3d"></canvas>
+  </div>
+
+  <div id="launcher-panel">
+    <h2>Garage & Customisation</h2>
+
+    <button id="audio-toggle" class="audio-btn" onclick="toggleHardrockTechno()">⚡ Audio HardRockTechno</button>
+
+    <div class="tabs">
+      <div id="tab-create" class="tab-btn active" onclick="switchMode('create')">Créer</div>
+      <div id="tab-select" class="tab-btn" onclick="switchMode('select')">Sélecteur</div>
+      <div id="tab-admin" class="tab-btn admin-tab" onclick="switchMode('admin')">🔒 Admin</div>
+    </div>
+
+    <!-- Section Création -->
+    <div id="section-create" style="display: flex; flex-direction: column; gap: 10px;">
+      <div id="character-preview-card" style="background: rgba(0, 229, 255, 0.08); border: 1px dashed #00e5ff; padding: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span id="preview-emoji-display" style="font-size: 1.5rem;">😎</span>
+          <span id="preview-name-display" style="font-weight: bold; color: #00e5ff;">Rider_01</span>
+        </div>
+        <div style="font-size: 0.8rem; color: #aaa; font-family: sans-serif;">
+          <p>🏎️ Véhicule: <strong id="preview-vehicle-text" style="color: #fff;">Velo</strong></p>
+          <p>⚔️ Classe: <strong id="preview-class-text" style="color: #fff;">Fighter</strong></p>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>Nom du Personnage</label>
+        <input type="text" id="char-name" value="Rider_01">
+      </div>
+
+      <div class="control-group">
+        <label>Couleur Stickman</label>
+        <input type="color" id="color-stickman" value="#00ffff">
+      </div>
+
+      <div class="control-group">
+        <label>Tête (Emoji Dynamique)</label>
+        <input type="text" id="emoji-input" value="😎" maxlength="4">
+      </div>
+
+      <div class="control-group">
+        <label>Véhicule</label>
+        <select id="vehicle-select">
+          <option value="Velo">Vélo Basic</option>
+          <option value="Rollers">Rollers Basic</option>
+          <option value="Skateboard">Skateboard Basic</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>Couleur Véhicule</label>
+        <input type="color" id="color-vehicle" value="#ff0055">
+      </div>
+
+      <div class="control-group">
+        <label>Classe & Stuff</label>
+        <select id="class-select">
+          <option value="Fighter">Fighter (Gants/Chaussures)</option>
+          <option value="Soldat">Soldat (Revolver)</option>
+          <option value="Ingenieur">Ingénieur (Chaîne Élec)</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>Couleur Stuff</label>
+        <input type="color" id="color-stuff" value="#ffaa00">
+      </div>
+
+      <button class="action-btn" onclick="saveCharacter()">💾 Sauvegarder Personnage</button>
+    </div>
+
+    <!-- Section Sélection -->
+    <div id="section-select" style="display: none; flex-direction: column; gap: 12px;">
+      <div class="control-group">
+        <label>Mes Personnages Sauvegardés</label>
+        <select id="saved-char-select" onchange="loadSavedCharacter(this.value)">
+          <option value="">-- Choisir un personnage --</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Section Admin -->
+    <div id="section-admin" style="display: none; flex-direction: column; gap: 12px;">
+      <div id="admin-login-box" style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="color: #ff0055;">Mot de Passe Admin Requis</label>
+        <input type="password" id="admin-pass-input" placeholder="Entrez le mot de passe...">
+        <button class="action-btn" style="background: #ff0055; color: #fff;" onclick="checkAdminPass()">Connexion Admin</button>
+      </div>
+
+      <div id="admin-controls" style="display: none; flex-direction: column; gap: 10px;">
+        <h3 style="color: #ff0055; font-size: 1.1rem; text-transform: uppercase;">🛠️ Modéliseur 3D de Poche</h3>
+        
+        <div class="control-group">
+          <label>Cible à Modéliser</label>
+          <select id="modeler-target" onchange="updateBoneUI()">
+            <option value="stickman">Personnage Stickman</option>
+            <option value="vehicle">Véhicule</option>
+            <option value="stuff">Équipement / Stuff</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>Partie / Bone Ciblé</label>
+          <select id="bone-target" onchange="updateBoneUI()">
+            <option value="none">-- Corps Complet / Objet Global --</option>
+            <optgroup label="Haut du Corps (Demi Corporale Supérieure)">
+              <option value="head">Tête</option>
+              <option value="chest">Torse</option>
+              <option value="handRight">Main Droite</option>
+              <option value="handLeft">Main Gauche</option>
+            </optgroup>
+            <optgroup label="Bas du Corps (Demi Corporale Inférieure)">
+              <option value="pelvis">Bassin</option>
+              <option value="footRight">Pied Droit</option>
+              <option value="footLeft">Pied Gauche</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div id="admin-modeler-box">
+          <div class="slider-row">
+            <label>Position Y (Hauteur)</label>
+            <input type="range" id="mod-pos-y" min="-2" max="2" step="0.01" value="0.28">
+          </div>
+          <div class="slider-row">
+            <label>Position Z (Profondeur)</label>
+            <input type="range" id="mod-pos-z" min="-2" max="2" step="0.01" value="-0.02">
+          </div>
+          <div class="slider-row">
+            <label>Position X (Latéral)</label>
+            <input type="range" id="mod-pos-x" min="-2" max="2" step="0.01" value="0">
+          </div>
+          <div class="slider-row">
+            <label>Rotation X (Inclinaison Avant/Arrière)</label>
+            <input type="range" id="mod-rot-x" min="-3.14" max="3.14" step="0.05" value="-0.15">
+          </div>
+          <div class="slider-row">
+            <label>Échelle (Taille Global)</label>
+            <input type="range" id="mod-scale" min="0.05" max="2" step="0.05" value="1">
+          </div>
+        </div>
+
+        <button class="action-btn" style="background: #ffaa00; color: #000;" onclick="copySocketConfig()">📋 Copier Config Sockets</button>
+      </div>
+    </div>
+
+    <button class="btn-launch" onclick="alert('Lancement du jeu Fight For Fast !')">START FIGHT</button>
+  </div>
+
+  <script>
+    const ADMIN_SECRET = "admin50124801080";
+    let isAdminUnlocked = false;
+
+    const coffRegistry = {
+      character: 'https://raw.githubusercontent.com/samuelhaihornberg/roll-punch/41fa9ca2723bf507b70a789976fa540ea431f1bf/Personnages/Model%20emojistick.glb',
+      vehicles: {
+        Rollers: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Rollers%20basic.glb',
+        Velo: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Velo%20basic.glb',
+        Skateboard: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Vehicules/Skateboard%20basic.glb'
+      },
+      stuff: {
+        Fighter: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/gant%20choose.glb',
+        Soldat: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/Revolver.glb',
+        Ingenieur: 'https://raw.githubusercontent.com/samuelhaihornberg/FFF/06e0ec7a79ff4671124b73120212d48d1ac2ee7f/Stuff/Chaine%20electrique.glb'
+      }
+    };
+
+    const bodySkeleton = {
+      nodes: {
+        head: ['Head', 'Tete', 'head'],
+        chest: ['Spine', 'Chest', 'Torse'],
+        pelvis: ['Hips', 'Pelvis', 'Fessier'],
+        handRight: ['Hand_R', 'HandR', 'Main_Droit'],
+        handLeft: ['Hand_L', 'HandL', 'Main_Gauche'],
+        footRight: ['Foot_R', 'FootR', 'Pied_Droit'],
+        footLeft: ['Foot_L', 'FootL', 'Pied_Gauche']
+      }
+    };
+
+    const sockets = {
+      vehicles: {
+        Velo: { pos: [0, 0, 0], scale: [0.5, 0.5, 0.5], charOffset: [0, 0.28, -0.05], charRotation: [-0.15, 0, 0] },
+        Rollers: { pos: [0, 0, 0], scale: [0.15, 0.15, 0.15], charOffset: [0, 0.05, 0], charRotation: [0, 0, 0] },
+        Skateboard: { pos: [0, 0, 0], scale: [0.4, 0.4, 0.4], charOffset: [0, 0.12, 0], charRotation: [0, 0.25, 0] }
+      },
+      stuff: {
+        Fighter: { targetBodyPart: 'footRight', pos: [0, 0, 0], scale: [0.25, 0.25, 0.25] },
+        Soldat: { targetBodyPart: 'handRight', pos: [0.05, 0, 0], scale: [0.12, 0.12, 0.12] },
+        Ingenieur: { targetBodyPart: 'chest', pos: [0, 0, -0.05], scale: [0.2, 0.2, 0.2] }
+      }
+    };
+
+    let scene, camera, renderer, controls, loader;
+    let characterGroup, currentVehicleMesh, currentStuffMesh;
+    let detectedBones = {};
+    let savedCharacters = {};
+    let currentToolMode = 'nav';
+
+    function init3D() {
+      const container = document.getElementById('viewport-3d');
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.set(0, 1.8, 4);
+
+      renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas3d'), antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.target.set(0, 0.8, 0);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+      scene.add(ambientLight);
+
+      const light1 = new THREE.PointLight(0x00e5ff, 2, 10);
+      light1.position.set(3, 3, 3);
+      scene.add(light1);
+
+      const light2 = new THREE.PointLight(0xff0055, 2, 10);
+      light2.position.set(-3, 2, -3);
+      scene.add(light2);
+
+      const grid = new THREE.GridHelper(12, 24, 0xff0055, 0x00e5ff);
+      scene.add(grid);
+
+      loader = new THREE.GLTFLoader();
+
+      loadAll('Velo', 'Fighter');
+      initSelectionSystem();
+      animate();
+    }
+
+    function scanCharacterBones(model) {
+      detectedBones = {};
+      model.traverse((child) => {
+        for (let partName in bodySkeleton.nodes) {
+          const keywords = bodySkeleton.nodes[partName];
+          keywords.forEach(key => {
+            if (child.name.toLowerCase().includes(key.toLowerCase())) {
+              detectedBones[partName] = child;
+            }
+          });
+        }
+      });
+    }
+
+    function applyMeshColor(model, colorHex) {
+      if (!model) return;
+      model.traverse((child) => {
+        if (child.isMesh && child.material) {
+          child.material = child.material.clone();
+          child.material.color.set(colorHex);
+        }
+      });
+    }
+
+    function applyEmojiTexture(model, emojiText) {
+      if (!model) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 256, 256);
+      ctx.font = '140px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(emojiText || '😎', 128, 128);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.needsUpdate = true;
+
+      model.traverse((child) => {
+        if (child.isMesh && (child.name.toLowerCase().includes('head') || child.name.toLowerCase().includes('tete'))) {
+          child.material = child.material.clone();
+          child.material.map = texture;
+          child.material.needsUpdate = true;
+        }
+      });
+    }
+
+    function loadAll(vehicleType, classType) {
+      const vConfig = sockets.vehicles[vehicleType];
+      const sConfig = sockets.stuff[classType];
+
+      loader.load(coffRegistry.vehicles[vehicleType], (gltfVehicle) => {
+        if (currentVehicleMesh) scene.remove(currentVehicleMesh);
+        currentVehicleMesh = gltfVehicle.scene;
+        currentVehicleMesh.scale.set(...vConfig.scale);
+        applyMeshColor(currentVehicleMesh, document.getElementById('color-vehicle').value);
+        scene.add(currentVehicleMesh);
+
+        loader.load(coffRegistry.character, (gltfChar) => {
+          if (characterGroup) scene.remove(characterGroup);
+          characterGroup = gltfChar.scene;
+          scanCharacterBones(characterGroup);
+
+          characterGroup.position.set(...vConfig.charOffset);
+          characterGroup.rotation.set(...vConfig.charRotation);
+          
+          applyMeshColor(characterGroup, document.getElementById('color-stickman').value);
+          applyEmojiTexture(characterGroup, document.getElementById('emoji-input').value);
+          scene.add(characterGroup);
+
+          loader.load(coffRegistry.stuff[classType], (gltfStuff) => {
+            if (currentStuffMesh && currentStuffMesh.parent) currentStuffMesh.parent.remove(currentStuffMesh);
+            currentStuffMesh = gltfStuff.scene;
+            currentStuffMesh.scale.set(...sConfig.scale);
+            currentStuffMesh.position.set(...sConfig.pos);
+            applyMeshColor(currentStuffMesh, document.getElementById('color-stuff').value);
+
+            const targetBone = detectedBones[sConfig.targetBodyPart];
+            if (targetBone) {
+              targetBone.add(currentStuffMesh);
+            } else {
+              characterGroup.add(currentStuffMesh);
+            }
+          });
+        });
+      });
+    }
+
+    function update3DPreview() {
+      const name = document.getElementById('char-name').value || 'Rider';
+      const emoji = document.getElementById('emoji-input').value || '😎';
+      const vehicle = document.getElementById('vehicle-select').value;
+      const classType = document.getElementById('class-select').value;
+
+      document.getElementById('preview-name-display').innerText = name;
+      document.getElementById('preview-emoji-display').innerText = emoji;
+      document.getElementById('preview-vehicle-text').innerText = vehicle;
+      document.getElementById('preview-class-text').innerText = classType;
+
+      loadAll(vehicle, classType);
+    }
+
+    function switchMode(mode) {
+      document.getElementById('tab-create').classList.toggle('active', mode === 'create');
+      document.getElementById('tab-select').classList.toggle('active', mode === 'select');
+      document.getElementById('tab-admin').classList.toggle('active', mode === 'admin');
+      
+      document.getElementById('section-create').style.display = mode === 'create' ? 'flex' : 'none';
+      document.getElementById('section-select').style.display = mode === 'select' ? 'flex' : 'none';
+      document.getElementById('section-admin').style.display = mode === 'admin' ? 'flex' : 'none';
+
+      // Gestion de la visibilité des outils de sélection/navigation
+      const toolbar = document.getElementById('viewport-toolbar');
+      if (mode === 'admin' && isAdminUnlocked) {
+        toolbar.style.display = 'flex';
+      } else {
+        toolbar.style.display = 'none';
+        setToolMode('nav'); // Forcer le mode navigation en mode normal
+      }
+    }
+
+    function setToolMode(mode) {
+      currentToolMode = mode;
+      document.getElementById('tool-nav').classList.toggle('active', mode === 'nav');
+      document.getElementById('tool-select').classList.toggle('active', mode === 'select');
+      controls.enabled = (mode === 'nav');
+    }
+
+    function checkAdminPass() {
+      const pass = document.getElementById('admin-pass-input').value;
+      if (pass === ADMIN_SECRET) {
+        isAdminUnlocked = true;
+        document.getElementById('admin-login-box').style.display = 'none';
+        document.getElementById('admin-controls').style.display = 'flex';
+        document.getElementById('viewport-toolbar').style.display = 'flex'; // Afficher la barre d'outils
+        document.getElementById('mode-badge').innerText = "Admin Modeler Active";
+        document.getElementById('mode-badge').style.background = "#ff0055";
+        alert("Mode Admin Débloqué !");
+      } else {
+        alert("Mot de passe incorrect.");
+      }
+    }
+
+    function getActiveTarget() {
+      const modelerTarget = document.getElementById('modeler-target').value;
+      const boneKey = document.getElementById('bone-target').value;
+
+      if (boneKey !== 'none' && detectedBones[boneKey]) {
+        return detectedBones[boneKey];
+      }
+
+      if (modelerTarget === 'stuff') return currentStuffMesh;
+      if (modelerTarget === 'vehicle') return currentVehicleMesh;
+      return characterGroup;
+    }
+
+    function applyModelerTransform(type, val) {
+      let targetObj = getActiveTarget();
+      if (!targetObj) return;
+
+      if (type === 'posY') targetObj.position.y = val;
+      if (type === 'posZ') targetObj.position.z = val;
+      if (type === 'posX') targetObj.position.x = val;
+      if (type === 'rotX') targetObj.rotation.x = val;
+      if (type === 'scale') targetObj.scale.set(val, val, val);
+    }
+
+    function updateBoneUI() {
+      let targetObj = getActiveTarget();
+      if (!targetObj) return;
+
+      document.getElementById('mod-pos-y').value = targetObj.position.y.toFixed(2);
+      document.getElementById('mod-pos-z').value = targetObj.position.z.toFixed(2);
+      document.getElementById('mod-pos-x').value = targetObj.position.x.toFixed(2);
+      document.getElementById('mod-rot-x').value = targetObj.rotation.x.toFixed(2);
+      document.getElementById('mod-scale').value = targetObj.scale.x.toFixed(2);
+    }
+
+    document.getElementById('mod-pos-y').addEventListener('input', (e) => applyModelerTransform('posY', parseFloat(e.target.value)));
+    document.getElementById('mod-pos-z').addEventListener('input', (e) => applyModelerTransform('posZ', parseFloat(e.target.value)));
+    document.getElementById('mod-pos-x').addEventListener('input', (e) => applyModelerTransform('posX', parseFloat(e.target.value)));
+    document.getElementById('mod-rot-x').addEventListener('input', (e) => applyModelerTransform('rotX', parseFloat(e.target.value)));
+    document.getElementById('mod-scale').addEventListener('input', (e) => applyModelerTransform('scale', parseFloat(e.target.value)));
+
+    function copySocketConfig() {
+      if (!characterGroup) return;
+      const configText = `
+        CharPos: [${characterGroup.position.x.toFixed(2)}, ${characterGroup.position.y.toFixed(2)}, ${characterGroup.position.z.toFixed(2)}]
+        CharRotX: ${characterGroup.rotation.x.toFixed(2)}
+      `;
+      navigator.clipboard.writeText(configText);
+      alert("Configuration d'ancrage copiée dans le presse-papier !");
+    }
+
+    function saveCharacter() {
+      const name = document.getElementById('char-name').value;
+      savedCharacters[name] = {
+        colorStickman: document.getElementById('color-stickman').value,
+        emoji: document.getElementById('emoji-input').value,
+        vehicle: document.getElementById('vehicle-select').value,
+        colorVehicle: document.getElementById('color-vehicle').value,
+        classType: document.getElementById('class-select').value,
+        colorStuff: document.getElementById('color-stuff').value
+      };
+
+      const select = document.getElementById('saved-char-select');
+      const option = document.createElement('option');
+      option.value = name;
+      option.innerText = name;
+      select.appendChild(option);
+      alert('Personnage "' + name + '" sauvegardé !');
+    }
+
+    function loadSavedCharacter(name) {
+      if (!name || !savedCharacters[name]) return;
+      const data = savedCharacters[name];
+      document.getElementById('color-stickman').value = data.colorStickman;
+      document.getElementById('emoji-input').value = data.emoji;
+      document.getElementById('vehicle-select').value = data.vehicle;
+      document.getElementById('color-vehicle').value = data.colorVehicle;
+      document.getElementById('class-select').value = data.classType;
+      document.getElementById('color-stuff').value = data.colorStuff;
+
+      update3DPreview();
+    }
+
+    let audioCtx, isPlaying = false, audioInterval;
+    function toggleHardrockTechno() {
+      const btn = document.getElementById('audio-toggle');
+      if (!isPlaying) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        isPlaying = true;
+        btn.classList.add('active');
+        btn.innerText = "🔥 Audio Playing (HardTechno)";
+        
+        let step = 0;
+        audioInterval = setInterval(() => {
+          if (step % 4 === 0) playKick();
+          if (step % 2 === 0) playRockDistortionBass(step % 8 === 0 ? 110 : 147);
+          step++;
+        }, 110);
+      } else {
+        clearInterval(audioInterval);
+        audioCtx.close();
+        isPlaying = false;
+        btn.classList.remove('active');
+        btn.innerText = "⚡ Audio HardRockTechno";
+      }
+    }
+
+    function playKick() {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.15);
+    }
+
+    function playRockDistortionBass(freq) {
+      const osc = audioCtx.createOscillator();
+      const dist = audioCtx.createWaveShaper();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+      const curve = new Float32Array(44100);
+      for (let i = 0; i < 44100; i++) {
+        let x = (i * 2) / 44100 - 1;
+        curve[i] = (3 + 20) * x * 20 * (Math.PI / 180) / (Math.PI + 20 * Math.abs(x));
+      }
+      dist.curve = curve;
+
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+
+      osc.connect(dist);
+      dist.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.2);
+    }
+
+    document.getElementById('color-stickman').addEventListener('input', (e) => applyMeshColor(characterGroup, e.target.value));
+    document.getElementById('color-vehicle').addEventListener('input', (e) => applyMeshColor(currentVehicleMesh, e.target.value));
+    document.getElementById('color-stuff').addEventListener('input', (e) => applyMeshColor(currentStuffMesh, e.target.value));
+
+    document.getElementById('char-name').addEventListener('input', update3DPreview);
+    document.getElementById('emoji-input').addEventListener('input', update3DPreview);
+    document.getElementById('vehicle-select').addEventListener('change', update3DPreview);
+    document.getElementById('class-select').addEventListener('change', update3DPreview);
+
+    function initSelectionSystem() {
+      const viewport = document.getElementById('viewport-3d');
+      const selectionBox = document.getElementById('selection-box');
+      let isSelecting = false;
+      let startX = 0, startY = 0;
+
+      viewport.addEventListener('pointerdown', (e) => {
+        if (currentToolMode !== 'select') return;
+
+        isSelecting = true;
+        startX = e.clientX;
+        startY = e.clientY;
+
+        selectionBox.style.left = startX + 'px';
+        selectionBox.style.top = startY + 'px';
+        selectionBox.style.width = '0px';
+        selectionBox.style.height = '0px';
+        selectionBox.style.display = 'block';
+      });
+
+      viewport.addEventListener('pointermove', (e) => {
+        if (!isSelecting || currentToolMode !== 'select') return;
+
+        const currentX = e.clientX;
+        const currentY = e.clientY;
+        const left = Math.min(currentX, startX);
+        const top = Math.min(currentY, startY);
+        const width = Math.abs(currentX - startX);
+        const height = Math.abs(currentY - startY);
+
+        selectionBox.style.left = left + 'px';
+        selectionBox.style.top = top + 'px';
+        selectionBox.style.width = width + 'px';
+        selectionBox.style.height = height + 'px';
+      });
+
+      const handleRelease = () => {
+        if (!isSelecting) return;
+        isSelecting = false;
+        selectionBox.style.display = 'none';
+
+        const rect = {
+          left: parseInt(selectionBox.style.left) || 0,
+          top: parseInt(selectionBox.style.top) || 0,
+          right: (parseInt(selectionBox.style.left) || 0) + (parseInt(selectionBox.style.width) || 0),
+          bottom: (parseInt(selectionBox.style.top) || 0) + (parseInt(selectionBox.style.height) || 0)
+        };
+
+        const viewRect = viewport.getBoundingClientRect();
+
+        for (let boneKey in detectedBones) {
+          const bone = detectedBones[boneKey];
+          const vector = bone.getWorldPosition(new THREE.Vector3()).project(camera);
+
+          const screenX = ((vector.x + 1) / 2) * viewRect.width + viewRect.left;
+          const screenY = ((-vector.y + 1) / 2) * viewRect.height + viewRect.top;
+
+          if (screenX >= rect.left && screenX <= rect.right && screenY >= rect.top && screenY <= rect.bottom) {
+            document.getElementById('bone-target').value = boneKey;
+            updateBoneUI();
+            break;
+          }
+        }
+      };
+
+      viewport.addEventListener('pointerup', handleRelease);
+      viewport.addEventListener('pointercancel', handleRelease);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      if (characterGroup) characterGroup.rotation.y += 0.003;
+      if (currentVehicleMesh) currentVehicleMesh.rotation.y += 0.003;
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      const container = document.getElementById('viewport-3d');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    window.onload = init3D;
+  </script>
+</body>
+</html>
