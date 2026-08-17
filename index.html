@@ -20,32 +20,32 @@
     #logo { height: 75px; filter: drop-shadow(0 0 12px #00e5ff); }
     .badge { background: rgba(255, 0, 85, 0.8); padding: 4px 12px; border-radius: 4px; font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; width: fit-content; box-shadow: 0 0 10px #ff0055; }
 
-    /* Barre d'outils : Masquée par défaut (display: none) */
+    /* Barre d'outils Flottante */
     #viewport-toolbar {
       position: absolute;
       bottom: 20px;
       left: 20px;
-      display: none; /* Visible uniquement en mode Admin */
+      display: none;
       gap: 10px;
-      background: rgba(10, 12, 18, 0.9);
-      border: 1px solid #ff0055;
-      padding: 8px;
+      background: rgba(10, 12, 18, 0.95);
+      border: 2px solid #ff0055;
+      padding: 10px;
       border-radius: 8px;
-      box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
-      z-index: 20;
+      box-shadow: 0 0 20px rgba(255, 0, 85, 0.6);
+      z-index: 999;
     }
 
     .tool-btn {
       background: #121620;
       border: 1px solid #283245;
       color: #fff;
-      padding: 8px 14px;
+      padding: 10px 16px;
       border-radius: 6px;
       cursor: pointer;
       font-size: 1rem;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       transition: all 0.2s ease;
     }
 
@@ -54,7 +54,7 @@
       background: #ff0055;
       color: #fff;
       border-color: #ff0055;
-      box-shadow: 0 0 10px #ff0055;
+      box-shadow: 0 0 12px #ff0055;
       font-weight: bold;
     }
 
@@ -106,13 +106,13 @@
       <div class="badge" id="mode-badge">Launcher User</div>
     </div>
 
-    <!-- Barre d'outils Flottante (Uniquement Admin) -->
+    <!-- Outils Admin de Sélection 3D -->
     <div id="viewport-toolbar">
       <button id="tool-nav" class="tool-btn active" onclick="setToolMode('nav')">
-        ✋ <span>Naviguer</span>
+        ✋ <span>Naviguer 3D</span>
       </button>
       <button id="tool-select" class="tool-btn" onclick="setToolMode('select')">
-        🖱️ <span>Sélecteur Bone</span>
+        🖱️ <span>Sélectionner Partie 3D</span>
       </button>
     </div>
 
@@ -199,7 +199,7 @@
       </div>
     </div>
 
-    <!-- Section Admin -->
+    <!-- Section Admin & Modéliseur -->
     <div id="section-admin" style="display: none; flex-direction: column; gap: 12px;">
       <div id="admin-login-box" style="display: flex; flex-direction: column; gap: 8px;">
         <label style="color: #ff0055;">Mot de Passe Admin Requis</label>
@@ -220,9 +220,9 @@
         </div>
 
         <div class="control-group">
-          <label>Partie / Bone Ciblé</label>
+          <label>Partie du Corps / Bone Sélectionné</label>
           <select id="bone-target" onchange="updateBoneUI()">
-            <option value="none">-- Corps Complet / Objet Global --</option>
+            <option value="none">-- Tout le corps / Objet global --</option>
             <optgroup label="Haut du Corps (Demi Corporale Supérieure)">
               <option value="head">Tête</option>
               <option value="chest">Torse</option>
@@ -315,6 +315,8 @@
     let detectedBones = {};
     let savedCharacters = {};
     let currentToolMode = 'nav';
+    let raycaster = new THREE.Raycaster();
+    let mouse = new THREE.Vector2();
 
     function init3D() {
       const container = document.getElementById('viewport-3d');
@@ -348,7 +350,7 @@
       loader = new THREE.GLTFLoader();
 
       loadAll('Velo', 'Fighter');
-      initSelectionSystem();
+      initDirectRaycastSelection();
       animate();
     }
 
@@ -465,13 +467,12 @@
       document.getElementById('section-select').style.display = mode === 'select' ? 'flex' : 'none';
       document.getElementById('section-admin').style.display = mode === 'admin' ? 'flex' : 'none';
 
-      // Gestion de la visibilité des outils de sélection/navigation
       const toolbar = document.getElementById('viewport-toolbar');
       if (mode === 'admin' && isAdminUnlocked) {
         toolbar.style.display = 'flex';
       } else {
         toolbar.style.display = 'none';
-        setToolMode('nav'); // Forcer le mode navigation en mode normal
+        setToolMode('nav');
       }
     }
 
@@ -488,9 +489,11 @@
         isAdminUnlocked = true;
         document.getElementById('admin-login-box').style.display = 'none';
         document.getElementById('admin-controls').style.display = 'flex';
-        document.getElementById('viewport-toolbar').style.display = 'flex'; // Afficher la barre d'outils
         document.getElementById('mode-badge').innerText = "Admin Modeler Active";
         document.getElementById('mode-badge').style.background = "#ff0055";
+        
+        // Affiche directement la barre d'outils
+        document.getElementById('viewport-toolbar').style.display = 'flex';
         alert("Mode Admin Débloqué !");
       } else {
         alert("Mot de passe incorrect.");
@@ -650,73 +653,64 @@
     document.getElementById('vehicle-select').addEventListener('change', update3DPreview);
     document.getElementById('class-select').addEventListener('change', update3DPreview);
 
-    function initSelectionSystem() {
+    // --- SELECTION DIRECTE D'OBJETS/BONES (RAYCASTING) ---
+    function initDirectRaycastSelection() {
       const viewport = document.getElementById('viewport-3d');
-      const selectionBox = document.getElementById('selection-box');
-      let isSelecting = false;
-      let startX = 0, startY = 0;
 
       viewport.addEventListener('pointerdown', (e) => {
         if (currentToolMode !== 'select') return;
 
-        isSelecting = true;
-        startX = e.clientX;
-        startY = e.clientY;
+        const rect = viewport.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-        selectionBox.style.left = startX + 'px';
-        selectionBox.style.top = startY + 'px';
-        selectionBox.style.width = '0px';
-        selectionBox.style.height = '0px';
-        selectionBox.style.display = 'block';
-      });
+        raycaster.setFromCamera(mouse, camera);
 
-      viewport.addEventListener('pointermove', (e) => {
-        if (!isSelecting || currentToolMode !== 'select') return;
+        // Cibler l'ensemble des éléments 3D présent dans la scène
+        const targets = [];
+        if (characterGroup) targets.push(characterGroup);
+        if (currentVehicleMesh) targets.push(currentVehicleMesh);
+        if (currentStuffMesh) targets.push(currentStuffMesh);
 
-        const currentX = e.clientX;
-        const currentY = e.clientY;
-        const left = Math.min(currentX, startX);
-        const top = Math.min(currentY, startY);
-        const width = Math.abs(currentX - startX);
-        const height = Math.abs(currentY - startY);
+        const intersects = raycaster.intersectObjects(targets, true);
 
-        selectionBox.style.left = left + 'px';
-        selectionBox.style.top = top + 'px';
-        selectionBox.style.width = width + 'px';
-        selectionBox.style.height = height + 'px';
-      });
+        if (intersects.length > 0) {
+          const hitObj = intersects[0].object;
 
-      const handleRelease = () => {
-        if (!isSelecting) return;
-        isSelecting = false;
-        selectionBox.style.display = 'none';
+          // Détecter si la partie cliquée correspond à un membre identifié
+          let matchedBoneKey = null;
+          let curr = hitObj;
+          while (curr && curr !== scene) {
+            for (let bKey in detectedBones) {
+              if (detectedBones[bKey] === curr) {
+                matchedBoneKey = bKey;
+                break;
+              }
+            }
+            if (matchedBoneKey) break;
+            curr = curr.parent;
+          }
 
-        const rect = {
-          left: parseInt(selectionBox.style.left) || 0,
-          top: parseInt(selectionBox.style.top) || 0,
-          right: (parseInt(selectionBox.style.left) || 0) + (parseInt(selectionBox.style.width) || 0),
-          bottom: (parseInt(selectionBox.style.top) || 0) + (parseInt(selectionBox.style.height) || 0)
-        };
-
-        const viewRect = viewport.getBoundingClientRect();
-
-        for (let boneKey in detectedBones) {
-          const bone = detectedBones[boneKey];
-          const vector = bone.getWorldPosition(new THREE.Vector3()).project(camera);
-
-          const screenX = ((vector.x + 1) / 2) * viewRect.width + viewRect.left;
-          const screenY = ((-vector.y + 1) / 2) * viewRect.height + viewRect.top;
-
-          if (screenX >= rect.left && screenX <= rect.right && screenY >= rect.top && screenY <= rect.bottom) {
-            document.getElementById('bone-target').value = boneKey;
+          if (matchedBoneKey) {
+            document.getElementById('modeler-target').value = 'stickman';
+            document.getElementById('bone-target').value = matchedBoneKey;
             updateBoneUI();
-            break;
+          } else {
+            // Déterminer s'il s'agit du véhicule ou de l'équipement
+            if (currentVehicleMesh && currentVehicleMesh.getObjectById(hitObj.id)) {
+              document.getElementById('modeler-target').value = 'vehicle';
+              document.getElementById('bone-target').value = 'none';
+            } else if (currentStuffMesh && currentStuffMesh.getObjectById(hitObj.id)) {
+              document.getElementById('modeler-target').value = 'stuff';
+              document.getElementById('bone-target').value = 'none';
+            } else {
+              document.getElementById('modeler-target').value = 'stickman';
+              document.getElementById('bone-target').value = 'none';
+            }
+            updateBoneUI();
           }
         }
-      };
-
-      viewport.addEventListener('pointerup', handleRelease);
-      viewport.addEventListener('pointercancel', handleRelease);
+      });
     }
 
     function animate() {
@@ -738,3 +732,4 @@
   </script>
 </body>
 </html>
+
